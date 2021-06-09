@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 namespace Unity.CitySim.CameraTargetController
@@ -7,9 +8,11 @@ namespace Unity.CitySim.CameraTargetController
     public class CameraTargetController : MonoBehaviour
     {
 
-        [Header("Movement")]
-        [Range(1, 10)]
+        [Range(1, 100)]
         public float speed = 5f;
+
+        [Range(1, 100)]
+        public int mouseSpeed = 10;
 
         [Range(10, 100)]
         public float maxRotationSpeed = 60f;
@@ -23,6 +26,7 @@ namespace Unity.CitySim.CameraTargetController
         float rotationSpeed = 0f;
 
         GameObject mainCamera;
+        bool onGround;
 
         void Awake()
         {
@@ -30,6 +34,15 @@ namespace Unity.CitySim.CameraTargetController
 
             if (!mainCamera)
                 throw new System.Exception("Camera not found!");
+
+            onGround = false;
+        }
+
+        void Start()
+        {
+            // Move camera to center of terrain
+            int mapHeight = GameObject.FindGameObjectWithTag("Map").GetComponent<TerrainGenerator.TerrainGenerator>().height;
+            transform.Translate(0, mapHeight, 0);
         }
 
         void Update()
@@ -41,13 +54,15 @@ namespace Unity.CitySim.CameraTargetController
             // Get the horizontal and vertical axis.
             // By default they are mapped to the arrow keys.
             // The value is in the range -1 to 1
-            float parallel = Input.GetAxis("Vertical") * speed - (Input.GetMouseButton(1) ? Input.GetAxis("Mouse Y") : 0);
+            float parallel = Input.GetAxis("Vertical") * speed - (Input.GetMouseButton(1) ? Input.GetAxis("Mouse Y") * mouseSpeed : 0);
             float perpendicular = Input.GetAxis("Horizontal") * speed;
             float vertical = 0f;
 
             // Set vertical if buttons 'R' or 'F' are pressed
-            if (Input.GetKey(KeyCode.R))
+            if (Input.GetKey(KeyCode.R)) {
+                onGround = false;
                 vertical += speed;
+            }
             if (Input.GetKey(KeyCode.F))
                 vertical -= speed;
 
@@ -72,12 +87,12 @@ namespace Unity.CitySim.CameraTargetController
             // Apply the rotation acceleration to the rotation speed
             if (rotation == 0) {
                 if (rotationSpeed < 0)
-                    rotationSpeed = System.Math.Min(rotationSpeed + rotationAcceleration, 0);
+                    rotationSpeed = Math.Min(rotationSpeed + rotationAcceleration, 0);
                 else if (rotationSpeed > 0)
-                    rotationSpeed = System.Math.Max(rotationSpeed - rotationAcceleration, 0);
+                    rotationSpeed = Math.Max(rotationSpeed - rotationAcceleration, 0);
             } else // if there is rotation input
-                rotationSpeed = System.Math.Max(
-                    System.Math.Min(rotationSpeed + rotation, maxRotationSpeed),
+                rotationSpeed = Math.Max(
+                    Math.Min(rotationSpeed + rotation, maxRotationSpeed),
                     -maxRotationSpeed
                 );
 
@@ -98,6 +113,17 @@ namespace Unity.CitySim.CameraTargetController
                 // Rotate around the global y-axis passing through the camera
                 transform.RotateAround(mainCamera.transform.position, Vector3.up, rotation);
             }
+
+            
+            //// LAST STEPS ////
+            // Prevent camera target from moving below the ground
+            Vector3 pos = transform.position;
+            float height = Terrain.activeTerrain.SampleHeight(transform.position);
+            if (onGround || pos.y < height) {
+                onGround = true;
+                pos.y = height;
+            }
+            transform.position = pos;
         }
     }
 }
