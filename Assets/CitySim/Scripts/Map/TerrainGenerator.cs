@@ -2,25 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.CitySim.TerrainGenerator
+namespace Unity.CitySim.Map
 {
     [RequireComponent(typeof(Terrain))]
     public class TerrainGenerator : MonoBehaviour
     {
-        [Range(10, 500)]
-        public int height = 100;
-
-        [Range(65, 4097)]
-        public int size = 10;
-
-        [Range(1, 10)]
-        public float intensity = 5f;
-
         public Vector2 offset;
         Terrain terrain;
+        int height;
+        int size;
+        float intensity;
 
-        public TerrainGenerator(Vector2 offset)
+        public void Initialize(int height, int size, float intensity, Vector2 offset)
         {
+            this.height = height;
+            this.size = size;
+            this.intensity = intensity;
             this.offset = offset;
         }
 
@@ -56,6 +53,7 @@ namespace Unity.CitySim.TerrainGenerator
         {
             terrain = GetComponent<Terrain>();
             GenerateTerrain();
+            transform.Translate(offset.x, 0, offset.y);
         }
 
         void OnValidate()

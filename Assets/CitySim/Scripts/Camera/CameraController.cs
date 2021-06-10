@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.CitySim.CameraController
+namespace Unity.CitySim.Camera
 {
     public class CameraController : MonoBehaviour
     {
-
         [Range(1, 100)]
         public float startVerticalOffset = 10f;
 
@@ -76,7 +75,10 @@ namespace Unity.CitySim.CameraController
             //// LAST STEPS ////
             // Prevent camera target from moving below the ground
             Vector3 pos = transform.position;
-            float height = Terrain.activeTerrain.SampleHeight(transform.position) + 1;
+            Terrain terrain = GameObject.FindGameObjectWithTag("Map")
+                .GetComponent<Map.MapChunkController>()
+                .TerrainAt(transform.position);
+            float height = terrain.SampleHeight(transform.position) + 1;
             if (pos.y < height)
                 pos.y = height;
             transform.position = pos;

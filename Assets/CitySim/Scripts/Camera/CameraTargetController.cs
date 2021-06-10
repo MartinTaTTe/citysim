@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-namespace Unity.CitySim.CameraTargetController
+namespace Unity.CitySim.Camera
 {
     public class CameraTargetController : MonoBehaviour
     {
-
         [Range(1, 100)]
         public float speed = 5f;
 
@@ -41,7 +40,7 @@ namespace Unity.CitySim.CameraTargetController
         void Start()
         {
             // Move camera to center of terrain
-            int mapHeight = GameObject.FindGameObjectWithTag("Map").GetComponent<TerrainGenerator.TerrainGenerator>().height;
+            int mapHeight = GameObject.FindGameObjectWithTag("Map").GetComponent<Map.MapGenerator>().maxHeight;
             transform.Translate(0, mapHeight, 0);
         }
 
@@ -108,7 +107,7 @@ namespace Unity.CitySim.CameraTargetController
                 float movement = -Input.GetAxis("Mouse X");
 
                 // Calculate the rotation in degrees
-                rotation = movement / Screen.width * Camera.main.fieldOfView * 2;
+                rotation = movement / Screen.width * UnityEngine.Camera.main.fieldOfView * 2;
 
                 // Rotate around the global y-axis passing through the camera
                 transform.RotateAround(mainCamera.transform.position, Vector3.up, rotation);
@@ -118,7 +117,10 @@ namespace Unity.CitySim.CameraTargetController
             //// LAST STEPS ////
             // Prevent camera target from moving below the ground
             Vector3 pos = transform.position;
-            float height = Terrain.activeTerrain.SampleHeight(transform.position);
+            Terrain terrain = GameObject.FindGameObjectWithTag("Map")
+                .GetComponent<Map.MapChunkController>()
+                .TerrainAt(transform.position);
+            float height = terrain.SampleHeight(transform.position);
             if (onGround || pos.y < height) {
                 onGround = true;
                 pos.y = height;
