@@ -1,77 +1,120 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Unity.CitySim.Map
 {
-    [RequireComponent(typeof(Terrain))]
+    [RequireComponent(typeof(MeshFilter))]
     public class TerrainGenerator : MonoBehaviour
     {
-        public Vector2 offset;
-        Terrain terrain;
-        int height;
-        int size;
-        float intensity;
+        public Vector2 offset; // Offset from world origo
+        Vector2 perlinOffset; // Offset for Perlin noise
+        int size; // Tile width for terrain chunk
+        float lod; // Level Of Detail, size of tile
+        float intensity; // Intenisity parameter for Perlin noise
+        int maxHeight; // Maximum height of terrain
 
-        public void Initialize(int height, int size, float intensity, Vector2 offset)
+        Mesh mesh;
+        Vector3[] vertices;
+        int[] triangles;
+        MapGenerator mapGenerator;
+
+        public void SetOffset(Vector2 offset)
         {
-            this.height = height;
-            this.size = size;
-            this.intensity = intensity;
             this.offset = offset;
         }
 
         void GenerateTerrain()
         {
-            // 2D-array for all points in terrain
-            float[,] heights = new float[size, size];
 
             // Loop through all points in terrain and generate a height for each point
-            for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size; y++) {
-                    heights[x, y] = GenerateHeight(x, y);
+            for (int i = 0, y = 0; y <= size; y++) {
+                for (int x = 0; x <= size; x++) {
+                    vertices[i++] = new Vector3(lod * x, GenerateHeight(x, y), lod * y);
                 }
             }
 
-            // Assign size and heights to TerrainData
-            terrain.terrainData.heightmapResolution = size + 1;
-            terrain.terrainData.size = new Vector3(size, height, size);
-            terrain.terrainData.SetHeights(0, 0, heights);
+            // Array for triangle corners
+            triangles = new int[size * size * 6];
+            
+            // Connect verticies to create triangles
+            for (int q = 0, t = 0, y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    // Order matters!
+                    triangles[t++] = q + 0;
+                    triangles[t++] = q + size + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + size + 1;
+                    triangles[t++] = q + size + 2;
+
+                    q++;
+                }
+                q++;
+            }
         }
 
         // Algorithm for generating the height based on x, y and offset using Perlin noise
         float GenerateHeight(int x, int y)
         {
-            float noise = Mathf.PerlinNoise(
-                        (offset.x + x) / size  * intensity,
-                        (offset.y + y) / size  * intensity
-                );
-            return noise;
+            float perlinX = (offset.x + x * lod) / size * intensity;
+            float perlinY = (offset.y + y * lod) / size * intensity;
+            float noise = Mathf.PerlinNoise(perlinX + perlinOffset.x, perlinY + perlinOffset.y);
+            
+            return noise * maxHeight;
+        }
+
+        // Get the height of the terrain from a local position
+        public float HeightAt(Vector2 position)
+        {
+            // Get x, y coordinates among vertices
+            int x = (int)(position.x / lod);
+            int y = (int)(position.y / lod);
+
+            // Index in vertices array
+            int i = x + y * (size + 1);
+
+            if (vertices == null)
+                return 0f;
+            else
+                return vertices[i].y;
+        }
+
+        void UpdateMesh()
+        {
+            mesh.Clear();
+
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+        }
+
+        void Awake()
+        {
+            mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
+            
+            this.perlinOffset = mapGenerator.perlinOffset;
+            this.size = mapGenerator.chunkSize;
+            this.lod = mapGenerator.levelOfDetail;
+            this.intensity = mapGenerator.intensity;
+            this.maxHeight = mapGenerator.maxHeight;
         }
 
         void Start()
         {
-            terrain = GetComponent<Terrain>();
+            // Array for all points in terrain
+            vertices = new Vector3[(size + 1) * (size + 1)];
+
+            if (offset == null) {
+                Debug.LogError("Offset not defined for terrain");
+                return;
+            }
+
+            // Create the mesh object
+            mesh = new Mesh();
+            GetComponent<MeshFilter>().mesh = mesh;
+
+            // Generate terrain and mesh
             GenerateTerrain();
             transform.Translate(offset.x, 0, offset.y);
-        }
-
-        void OnValidate()
-        {
-            if (size <= 65)
-                size = 65;
-            else if (size <= 129)
-                size = 129;
-            else if (size <= 257)
-                size = 257;
-            else if (size <= 513)
-                size = 513;
-            else if (size <= 1025)
-                size = 1025;
-            else if (size <= 2049)
-                size = 2049;
-            else
-                size = 4097;
+            UpdateMesh();
         }
     }
 }

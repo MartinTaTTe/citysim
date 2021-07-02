@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using System;
 using UnityEngine;
+using Unity.CitySim.Map;
 
 namespace Unity.CitySim.Camera
 {
@@ -21,27 +20,31 @@ namespace Unity.CitySim.Camera
 
         [Range(1, 100)]
         public int shiftModifier = 10;
-
+        
         float rotationSpeed = 0f;
-
-        GameObject mainCamera;
         bool onGround;
+        GameObject mainCamera;
+        MapGenerator mapGenerator;
 
         void Awake()
         {
             mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+            mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
 
             if (!mainCamera)
-                throw new System.Exception("Camera not found!");
+                throw new Exception("Camera not found!");
 
             onGround = false;
         }
 
         void Start()
         {
+            // Get height of map
+            int mapHeight = mapGenerator.maxHeight;
+            
             // Move camera to center of terrain
-            int mapHeight = GameObject.FindGameObjectWithTag("Map").GetComponent<Map.MapGenerator>().maxHeight;
-            transform.Translate(0, mapHeight, 0);
+            float middle = (mapGenerator.chunkSize * mapGenerator.levelOfDetail * mapGenerator.maxGridSize / 2);
+            transform.Translate(middle, mapHeight, middle);
         }
 
         void Update()
@@ -117,15 +120,17 @@ namespace Unity.CitySim.Camera
             //// LAST STEPS ////
             // Prevent camera target from moving below the ground
             Vector3 pos = transform.position;
-            Terrain terrain = GameObject.FindGameObjectWithTag("Map")
-                .GetComponent<Map.MapChunkController>()
-                .TerrainAt(transform.position);
-            float height = terrain.SampleHeight(transform.position);
+            float height = mapGenerator.HeightAt(transform.position);
             if (onGround || pos.y < height) {
                 onGround = true;
                 pos.y = height;
             }
             transform.position = pos;
+        }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.DrawSphere(transform.position, 0.2f);
         }
     }
 }

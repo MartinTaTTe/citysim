@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Unity.CitySim.Map;
 
 namespace Unity.CitySim.Camera
 {
@@ -15,15 +14,17 @@ namespace Unity.CitySim.Camera
         [Range(0.1f, 10f)]
         public float zoomSensitivity = 1f;
 
-        GameObject target;
         float verticalOffset;
         float horizontalOffset;
+        GameObject cameraTarget;
+        MapGenerator mapGenerator;
 
         void Awake()
         {
-            target = GameObject.FindGameObjectWithTag("Player");
+            cameraTarget = GameObject.FindGameObjectWithTag("Player");
+            mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
 
-            if (!target)
+            if (!cameraTarget)
                 throw new System.Exception("Player not found!");
 
             verticalOffset = startVerticalOffset;
@@ -59,28 +60,25 @@ namespace Unity.CitySim.Camera
 
             //// OFFSET ////
             // Get the position of the target and correct the camera height
-            Vector3 position = target.transform.position;
+            Vector3 position = cameraTarget.transform.position;
             position.y += verticalOffset;
 
             // Set camera to that position and match rotation with target
-            transform.SetPositionAndRotation(position, target.transform.rotation);
+            transform.SetPositionAndRotation(position, cameraTarget.transform.rotation);
 
             // Move camera backwards to be behind the target
             transform.Translate(Vector3.back * horizontalOffset);
 
             // Point camera towards target
-            transform.LookAt(target.transform);
+            transform.LookAt(cameraTarget.transform);
 
 
             //// LAST STEPS ////
             // Prevent camera target from moving below the ground
             Vector3 pos = transform.position;
-            Terrain terrain = GameObject.FindGameObjectWithTag("Map")
-                .GetComponent<Map.MapChunkController>()
-                .TerrainAt(transform.position);
-            float height = terrain.SampleHeight(transform.position) + 1;
-            if (pos.y < height)
-                pos.y = height;
+            float height = mapGenerator.HeightAt(transform.position);
+            if (pos.y < height + 1)
+                pos.y = height + 1;
             transform.position = pos;
         }
     }

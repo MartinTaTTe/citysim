@@ -290,11 +290,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0885278add0386c47a3c4a5450380041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHeight: 40
-  chunkSize: 129
-  intensity: 4
-  maxGridSize: 10
-  TerrainType: {fileID: 1710942575876829439, guid: bd8f9582a7b317d448abd05d105fbf22, type: 3}
+  maxHeight: 50
+  chunkSize: 100
+  levelOfDetail: 0.8
+  intensity: 1.5
+  maxGridSize: 20
+  perlinOffset: {x: 0, y: 0}
+  TerrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
 --- !u!114 &288710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -304,10 +306,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 288710082}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8741b60208d460f468983a2786067499, type: 3}
+  m_Script: {fileID: 11500000, guid: 8e700f70981add843a9038dbbe0f08d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderRange: 300
+  renderRange: 50
 --- !u!1 &665472417
 GameObject:
   m_ObjectHideFlags: 0
