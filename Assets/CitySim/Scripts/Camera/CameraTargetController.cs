@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using Unity.CitySim.Map;
 
@@ -32,7 +31,7 @@ namespace Unity.CitySim.Camera
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
 
             if (!mainCamera)
-                throw new Exception("Camera not found!");
+                throw new System.Exception("Camera not found!");
 
             onGround = false;
         }
@@ -89,14 +88,11 @@ namespace Unity.CitySim.Camera
             // Apply the rotation acceleration to the rotation speed
             if (rotation == 0) {
                 if (rotationSpeed < 0)
-                    rotationSpeed = Math.Min(rotationSpeed + rotationAcceleration, 0);
+                    rotationSpeed = Mathf.Min(rotationSpeed + rotationAcceleration, 0);
                 else if (rotationSpeed > 0)
-                    rotationSpeed = Math.Max(rotationSpeed - rotationAcceleration, 0);
+                    rotationSpeed = Mathf.Max(rotationSpeed - rotationAcceleration, 0);
             } else // if there is rotation input
-                rotationSpeed = Math.Max(
-                    Math.Min(rotationSpeed + rotation, maxRotationSpeed),
-                    -maxRotationSpeed
-                );
+                rotationSpeed = Mathf.Clamp(rotationSpeed + rotation, -maxRotationSpeed, maxRotationSpeed);
 
             // Rotate around the object's y-axis (should always be parallel to global y-axis)
             transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);

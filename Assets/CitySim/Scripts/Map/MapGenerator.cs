@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace Unity.CitySim.Map
@@ -79,10 +78,8 @@ namespace Unity.CitySim.Map
             yInt = (int)(y / (chunkSize * levelOfDetail));
 
             // Clamp coordinates to be within limits
-            xInt = Math.Max(xInt, 0);
-            xInt = Math.Min(xInt, maxGridSize - 1);
-            yInt = Math.Max(yInt, 0);
-            yInt = Math.Min(yInt, maxGridSize - 1);
+            xInt = Mathf.Clamp(xInt, 0, maxGridSize - 1);
+            yInt = Mathf.Clamp(yInt, 0, maxGridSize - 1);
 
             return new Vector2Int(xInt, yInt);
         }

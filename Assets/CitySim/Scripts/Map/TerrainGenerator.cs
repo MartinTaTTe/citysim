@@ -71,6 +71,7 @@ namespace Unity.CitySim.Map
 
             // Index in vertices array
             int i = x + y * (size + 1);
+            i = Mathf.Clamp(i, 0, vertices.Length - 1);
 
             if (vertices == null)
                 return 0f;
