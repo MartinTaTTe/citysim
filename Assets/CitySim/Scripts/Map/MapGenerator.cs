@@ -10,7 +10,7 @@ namespace Unity.CitySim.Map
         [Range(16, 4096)]
         public int chunkSize = 512;
 
-        [Range(0.1f, 1f)]
+        [Range(0.1f, 2f)]
         public float levelOfDetail = 1f;
 
         [Range(1, 10)]

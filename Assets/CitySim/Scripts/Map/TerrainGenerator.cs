@@ -7,8 +7,8 @@ namespace Unity.CitySim.Map
     {
         public Vector2 offset; // Offset from world origo
         Vector2 perlinOffset; // Offset for Perlin noise
-        int size; // Tile width for terrain chunk
-        float lod; // Level Of Detail, size of tile
+        int size; // Size of terrain chunk in quads
+        float lod; // Level Of Detail, size of quad
         float intensity; // Intenisity parameter for Perlin noise
         int maxHeight; // Maximum height of terrain
 
@@ -65,18 +65,61 @@ namespace Unity.CitySim.Map
         // Get the height of the terrain from a local position
         public float HeightAt(Vector2 position)
         {
-            // Get x, y coordinates among vertices
-            int x = (int)(position.x / lod);
-            int y = (int)(position.y / lod);
-
-            // Index in vertices array
-            int i = x + y * (size + 1);
-            i = Mathf.Clamp(i, 0, vertices.Length - 1);
-
             if (vertices == null)
                 return 0f;
-            else
-                return vertices[i].y;
+
+            // Get x, y coordinates among vertices
+            Vector2Int vertex = new Vector2Int(
+                (int)(position.x / lod),
+                (int)(position.y / lod)
+            );
+
+            // Index in vertices array
+            int i = vertex.x + vertex.y * (size + 1);
+            i = Mathf.Clamp(i, 0, vertices.Length - 1);
+
+            // Get local coordinates within quad (0 to 1)
+            float x = position.x / lod - vertex.x;
+            float y = position.y / lod - vertex.y;
+            float xi = 1 - x;
+            float yi = 1 - y;
+
+            // Whether or not the point is in the lower left triangle or the upper right triangle
+            bool inLowerLeft = x + y < 1f;
+
+            // Heights of the 4 vertices where C is 'vertex', like
+            // A---B
+            // | \ |
+            // C---D
+            float A = vertices[i + size + 1].y;
+            float B = vertices[i + size + 2].y;
+            float C = vertices[i].y;
+            float D = vertices[i + 1].y;
+
+            // Avoid division by 0
+            if (x + y == 0 || xi + yi == 0)
+                return C;
+
+            // Lower left triangle in the quad
+            if (inLowerLeft) {
+                // Lerp from A to D
+                float AToD = x + (x / (x + y)) * (1f - x - y);
+                float X = Mathf.Lerp(A, D, AToD);
+
+                // Lerp from the new midpoint to C
+                float CToX = x + y;
+                return Mathf.Lerp(C, X, CToX);
+            }
+            // Upper right triangle in the quad
+            else {
+                // Lerp from A to D
+                float AToD = yi + (yi / (xi + yi)) * (1f - xi - yi);
+                float X = Mathf.Lerp(A, D, AToD);
+
+                // Lerp from the new midpoint to B
+                float BToX = xi + yi;
+                return Mathf.Lerp(B, X, BToX);
+            }
         }
 
         void UpdateMesh()
