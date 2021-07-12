@@ -87,8 +87,9 @@ namespace Unity.CitySim.Map
             );
 
             // Index in vertices array
+            vertex.x = Mathf.Clamp(vertex.x, 0, size);
+            vertex.y = Mathf.Clamp(vertex.y, 0, size);
             int i = vertex.x + vertex.y * (size + 1);
-            i = Mathf.Clamp(i, 0, vertices.Length - 1);
 
             // Get local coordinates within quad (0 to 1)
             float x = position.x / lod - vertex.x;
@@ -96,41 +97,58 @@ namespace Unity.CitySim.Map
             float xi = 1 - x;
             float yi = 1 - y;
 
-            // Whether or not the point is in the lower left triangle or the upper right triangle
-            bool inLowerLeft = x + y < 1f;
-
-            // Heights of the 4 vertices where C is 'vertex', like
-            // A---B
+            // Heights of the 4 vertices where A is 'vertex', like
+            // B---C
             // | \ |
-            // C---D
-            float A = vertices[i + size + 1].y;
-            float B = vertices[i + size + 2].y;
-            float C = vertices[i].y;
-            float D = vertices[i + 1].y;
+            // A---D
+            float A = vertices[i].y;
+            float B;
+            float C;
+            float D;
 
             // Avoid division by 0
-            if (x + y == 0 || xi + yi == 0)
+            if (x + y == 0)
+                return A;
+
+            // Between A and B
+            if (x == 0) {
+                B = vertices[i + size + 1].y;
+                return Mathf.Lerp(A, B, y);
+            }
+
+            // Between A and D
+            if (y == 0) {
+                D = vertices[i + 1].y;
+                return Mathf.Lerp(A, D, x);
+            }
+
+            B = vertices[i + size + 1].y;
+            C = vertices[i + size + 2].y;
+            D = vertices[i + 1].y;
+
+            // Avoid division by 0
+            if (xi + yi == 0)
                 return C;
 
-            // Lower left triangle in the quad
-            if (inLowerLeft) {
+            // Whether the point is in the lower left triangle ...
+            if (x + y < 1f) {
                 // Lerp from A to D
-                float AToD = x + (x / (x + y)) * (1f - x - y);
-                float X = Mathf.Lerp(A, D, AToD);
+                float BToD = Mathf.Lerp(x, yi, x / (x + y));
+                float X = Mathf.Lerp(B, D, BToD);
 
                 // Lerp from the new midpoint to C
-                float CToX = x + y;
-                return Mathf.Lerp(C, X, CToX);
+                float AToX = x + y;
+                return Mathf.Lerp(A, X, AToX);
             }
-            // Upper right triangle in the quad
+            // ... or in the upper right triangle in the quad
             else {
                 // Lerp from A to D
-                float AToD = yi + (yi / (xi + yi)) * (1f - xi - yi);
-                float X = Mathf.Lerp(A, D, AToD);
+                float BToD = Mathf.Lerp(yi, x, yi / (xi + yi));
+                float X = Mathf.Lerp(B, D, BToD);
 
                 // Lerp from the new midpoint to B
-                float BToX = xi + yi;
-                return Mathf.Lerp(B, X, BToX);
+                float CToX = xi + yi;
+                return Mathf.Lerp(C, X, CToX);
             }
         }
 

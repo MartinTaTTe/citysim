@@ -114,13 +114,19 @@ namespace Unity.CitySim.Camera
 
             
             //// LAST STEPS ////
-            // Prevent camera target from moving below the ground
+            // Clamp camera target to map borders
             Vector3 pos = transform.position;
-            float height = mapGenerator.HeightAt(transform.position);
+            float max = mapGenerator.mapSize;
+            pos.x = Mathf.Clamp(pos.x, 0, max);
+            pos.z = Mathf.Clamp(pos.z, 0, max);
+
+            // Prevent camera target from moving below the ground
+            float height = mapGenerator.HeightAt(pos);
             if (onGround || pos.y < height) {
                 onGround = true;
                 pos.y = height;
             }
+
             transform.position = pos;
         }
 

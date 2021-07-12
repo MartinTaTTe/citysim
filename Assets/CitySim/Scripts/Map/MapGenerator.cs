@@ -33,7 +33,7 @@ namespace Unity.CitySim.Map
         public GameObject TerrainType;
 
         GameObject[,] terrainChunks;
-
+        public float mapSize;
 
         // Returns the terrain chunk at x, y and generates it if necessary
         public GameObject GetChunk(int x, int y)
@@ -63,19 +63,6 @@ namespace Unity.CitySim.Map
 
             // If it doesn't exist
             return null;
-        }
-
-        // Create a new terrain chunk at grid coordinates x, y
-        GameObject GenerateChunk(int x, int y)
-        {
-            // Copy the Terrain Type
-            terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
-
-            // Set the offset for the new terrain chunk
-            Vector2 offset = new Vector2(x * chunkSize * levelOfDetail, y * chunkSize * levelOfDetail);
-            terrainChunks[x,y].GetComponent<TerrainGenerator>().SetOffset(offset);
-            
-            return terrainChunks[x, y];
         }
 
         // Get the grid coordinates from a world position
@@ -120,8 +107,28 @@ namespace Unity.CitySim.Map
             return terrain.GetComponent<TerrainGenerator>().HeightAt(localOffset);
         }
 
+        // Create a new terrain chunk at grid coordinates x, y
+        GameObject GenerateChunk(int x, int y)
+        {
+            // Copy the Terrain Type
+            terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
+
+            // Set the offset for the new terrain chunk
+            Vector2 offset = new Vector2(x * chunkSize * levelOfDetail, y * chunkSize * levelOfDetail);
+            terrainChunks[x,y].GetComponent<TerrainGenerator>().SetOffset(offset);
+            
+            return terrainChunks[x, y];
+        }
+
+        // Set the size of the map in units
+        void SetMapSize()
+        {
+            mapSize = chunkSize * levelOfDetail * maxGridSize;
+        }
+
         void Awake()
         {
+            SetMapSize();
             terrainChunks = new GameObject[maxGridSize, maxGridSize];
         }
 
@@ -129,6 +136,8 @@ namespace Unity.CitySim.Map
         {
             // Max Grid Size
             maxGridSize = maxGridSize / 2 * 2;
+
+            SetMapSize();
         }
     } 
 }

@@ -292,11 +292,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHeight: 50
   chunkSize: 100
-  levelOfDetail: 0.8
-  intensity: 1.5
+  levelOfDetail: 1
   maxGridSize: 20
   perlinOffset: {x: 0, y: 0}
+  octaves: 4
+  persistance: 0.5
+  lacunarity: 2
   TerrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
+  mapSize: 2000
 --- !u!114 &288710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
