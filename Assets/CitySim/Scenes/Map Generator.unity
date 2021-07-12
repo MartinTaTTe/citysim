@@ -290,16 +290,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0885278add0386c47a3c4a5450380041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHeight: 50
-  chunkSize: 100
-  levelOfDetail: 1
+  chunkSize: 250
+  levelOfDetail: 4
   maxGridSize: 20
   perlinOffset: {x: 0, y: 0}
-  octaves: 4
-  persistance: 0.5
-  lacunarity: 2
+  octaves: 10
+  initialAmplitude: 2000
+  persistance: 0.2
+  initialFrequency: 0.015
+  lacunarity: 6
   TerrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
-  mapSize: 2000
+  mapSize: 20000
 --- !u!114 &288710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -312,7 +313,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e700f70981add843a9038dbbe0f08d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderRange: 50
+  renderRange: 2000
 --- !u!1 &665472417
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,6 +565,14 @@ PrefabInstance:
     - target: {fileID: 7672560092516540882, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
       propertyPath: fov
       value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 7672560092516540882, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
+      propertyPath: speed
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 7672560092516540882, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
+      propertyPath: mouseSpeed
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7672560092516540882, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
       propertyPath: maxRotationSpeed

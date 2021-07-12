@@ -9,10 +9,11 @@ namespace Unity.CitySim.Map
         Vector2 perlinOffset; // Offset for Perlin noise
         int size; // Size of terrain chunk in quads
         float lod; // Level Of Detail, size of quad
-        int maxHeight; // Maximum height of terrain
         int octaves; // Number of layers of Perlin noise
-        float persistance; // Overall height of map
-        float lacunarity; // Density of peaks
+        float initialAmplitude; // Initial amplitude for Perlin noise
+        float persistance; // Amplitude modifier (Overall height of terrain)
+        float initialFrequency; // Initial frequency for Perlin noise
+        float lacunarity; // Frequency modifier (Density of peaks)
 
         Mesh mesh;
         Vector3[] vertices;
@@ -57,8 +58,8 @@ namespace Unity.CitySim.Map
         // Algorithm for generating the height based on x, y and offset using Perlin noise
         float GenerateHeight(int x, int y)
         {
-            float amplitude = 1;
-            float frequency = 1;
+            float amplitude = initialAmplitude;
+            float frequency = initialFrequency;
             float noise = 0;
 
             for (int i = 0; i < octaves; i++) {
@@ -71,7 +72,7 @@ namespace Unity.CitySim.Map
                 frequency *= lacunarity;
             }
             
-            return noise * maxHeight;
+            return noise;
         }
 
         // Get the height of the terrain from a local position
@@ -166,10 +167,11 @@ namespace Unity.CitySim.Map
             
             this.size = mapGenerator.chunkSize;
             this.lod = mapGenerator.levelOfDetail;
-            this.maxHeight = mapGenerator.maxHeight;
             this.perlinOffset = mapGenerator.perlinOffset;
             this.octaves = mapGenerator.octaves;
+            this.initialAmplitude = mapGenerator.initialAmplitude;
             this.persistance = mapGenerator.persistance;
+            this.initialFrequency = mapGenerator.initialFrequency;
             this.lacunarity = mapGenerator.lacunarity;
         }
 

@@ -39,10 +39,10 @@ namespace Unity.CitySim.Camera
         void Start()
         {
             // Get height of map
-            int mapHeight = mapGenerator.maxHeight;
+            float mapHeight = mapGenerator.initialAmplitude;
             
             // Move camera to center of terrain
-            float middle = (mapGenerator.chunkSize * mapGenerator.levelOfDetail * mapGenerator.maxGridSize / 2);
+            float middle = mapGenerator.mapSize / 2;
             transform.Translate(middle, mapHeight, middle);
         }
 

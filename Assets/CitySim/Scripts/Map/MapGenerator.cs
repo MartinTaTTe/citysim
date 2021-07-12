@@ -5,13 +5,11 @@ namespace Unity.CitySim.Map
     public class MapGenerator : MonoBehaviour
     {
         [Header("Map parameters")]
-        [Range(1, 500)]
-        public int maxHeight = 100;
 
-        [Range(16, 4096)]
+        [Range(10, 1000)]
         public int chunkSize = 512;
 
-        [Range(0.1f, 2f)]
+        [Range(0.5f, 10f)]
         public float levelOfDetail = 1f;
 
         [Range(2, 100)]
@@ -23,10 +21,16 @@ namespace Unity.CitySim.Map
         [Range(1, 10)]
         public int octaves = 4;
 
-        [Range(0.2f, 2f)]
+        [Range(1f, 10000f)]
+        public float initialAmplitude = 1f;
+
+        [Range(0.1f, 2f)]
         public float persistance = 0.5f;
 
-        [Range(1f, 3f)]
+        [Range(0.01f, 3f)]
+        public float initialFrequency = 1f;
+
+        [Range(0.1f, 10f)]
         public float lacunarity = 2f;
 
         [Header("")]
@@ -138,6 +142,21 @@ namespace Unity.CitySim.Map
             maxGridSize = maxGridSize / 2 * 2;
 
             SetMapSize();
+        }
+
+        void Update()
+        {
+            // Delete all chunks if space is pressed
+            if (Input.GetKey(KeyCode.Space)) {
+                for (int x = 0; x < maxGridSize; x++) {
+                    for (int y = 0; y < maxGridSize; y++) {
+                        GameObject chunk = GetChunkIfExist(x, y);
+                        if (chunk)
+                            Destroy(chunk);
+                    }
+                }
+            }
+
         }
     } 
 }
