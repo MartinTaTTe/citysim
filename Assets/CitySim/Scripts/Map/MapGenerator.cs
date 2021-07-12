@@ -4,6 +4,7 @@ namespace Unity.CitySim.Map
 {
     public class MapGenerator : MonoBehaviour
     {
+        [Header("Map parameters")]
         [Range(1, 500)]
         public int maxHeight = 100;
 
@@ -13,13 +14,22 @@ namespace Unity.CitySim.Map
         [Range(0.1f, 2f)]
         public float levelOfDetail = 1f;
 
-        [Range(1, 10)]
-        public float intensity = 5f;
-
         [Range(2, 100)]
         public int maxGridSize = 10;
+
+        [Header("Perlin noise")]
         public Vector2 perlinOffset = new Vector2(0f, 0f);
 
+        [Range(1, 10)]
+        public int octaves = 4;
+
+        [Range(0.2f, 2f)]
+        public float persistance = 0.5f;
+
+        [Range(1f, 3f)]
+        public float lacunarity = 2f;
+
+        [Header("")]
         public GameObject TerrainType;
 
         GameObject[,] terrainChunks;

@@ -5,12 +5,14 @@ namespace Unity.CitySim.Map
     [RequireComponent(typeof(MeshFilter))]
     public class TerrainGenerator : MonoBehaviour
     {
-        public Vector2 offset; // Offset from world origo
+        Vector2 offset; // Offset from world origo
         Vector2 perlinOffset; // Offset for Perlin noise
         int size; // Size of terrain chunk in quads
         float lod; // Level Of Detail, size of quad
-        float intensity; // Intenisity parameter for Perlin noise
         int maxHeight; // Maximum height of terrain
+        int octaves; // Number of layers of Perlin noise
+        float persistance; // Overall height of map
+        float lacunarity; // Density of peaks
 
         Mesh mesh;
         Vector3[] vertices;
@@ -55,9 +57,19 @@ namespace Unity.CitySim.Map
         // Algorithm for generating the height based on x, y and offset using Perlin noise
         float GenerateHeight(int x, int y)
         {
-            float perlinX = (offset.x + x * lod) / size * intensity;
-            float perlinY = (offset.y + y * lod) / size * intensity;
-            float noise = Mathf.PerlinNoise(perlinX + perlinOffset.x, perlinY + perlinOffset.y);
+            float amplitude = 1;
+            float frequency = 1;
+            float noise = 0;
+
+            for (int i = 0; i < octaves; i++) {
+                float perlinX = (offset.x + x * lod) / size * frequency;
+                float perlinY = (offset.y + y * lod) / size * frequency;
+                float perlin = Mathf.PerlinNoise(perlinX + perlinOffset.x, perlinY + perlinOffset.y);
+                noise += perlin * amplitude;
+
+                amplitude *= persistance;
+                frequency *= lacunarity;
+            }
             
             return noise * maxHeight;
         }
@@ -134,11 +146,13 @@ namespace Unity.CitySim.Map
         {
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
-            this.perlinOffset = mapGenerator.perlinOffset;
             this.size = mapGenerator.chunkSize;
             this.lod = mapGenerator.levelOfDetail;
-            this.intensity = mapGenerator.intensity;
             this.maxHeight = mapGenerator.maxHeight;
+            this.perlinOffset = mapGenerator.perlinOffset;
+            this.octaves = mapGenerator.octaves;
+            this.persistance = mapGenerator.persistance;
+            this.lacunarity = mapGenerator.lacunarity;
         }
 
         void Start()
