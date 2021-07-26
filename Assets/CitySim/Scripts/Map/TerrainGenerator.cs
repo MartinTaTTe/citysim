@@ -5,6 +5,8 @@ namespace Unity.CitySim.Map
     [RequireComponent(typeof(MeshFilter))]
     public class TerrainGenerator : MonoBehaviour
     {
+        public Gradient gradient;
+
         Vector2 offset; // Offset from world origo
         Vector2 perlinOffset; // Offset for Perlin noise
         int size; // Size of terrain chunk in quads
@@ -17,6 +19,7 @@ namespace Unity.CitySim.Map
 
         Mesh mesh;
         Vector3[] vertices;
+        Color[] colors;
         int[] triangles;
         MapGenerator mapGenerator;
 
@@ -28,10 +31,17 @@ namespace Unity.CitySim.Map
         void GenerateTerrain()
         {
 
-            // Loop through all points in terrain and generate a height for each point
+            // Loop through all points in terrain and generate a height and color for each point
             for (int i = 0, y = 0; y <= size; y++) {
                 for (int x = 0; x <= size; x++) {
-                    vertices[i++] = new Vector3(lod * x, GenerateHeight(x, y), lod * y);
+                    // Height
+                    float height = GenerateHeight(x, y);
+                    vertices[i] = new Vector3(lod * x, height, lod * y);
+
+                    // Color
+                    colors[i++] = gradient.Evaluate(
+                        Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
+                    );
                 }
             }
 
@@ -159,6 +169,7 @@ namespace Unity.CitySim.Map
 
             mesh.vertices = vertices;
             mesh.triangles = triangles;
+            mesh.colors = colors;
         }
 
         void Awake()
@@ -177,8 +188,9 @@ namespace Unity.CitySim.Map
 
         void Start()
         {
-            // Array for all points in terrain
+            // Arrays for all points in terrain (height and color)
             vertices = new Vector3[(size + 1) * (size + 1)];
+            colors = new Color[vertices.Length];
 
             if (offset == null) {
                 Debug.LogError("Offset not defined for terrain");
