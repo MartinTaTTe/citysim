@@ -14,8 +14,13 @@ namespace Unity.CitySim.Camera
         [Range(0.1f, 10f)]
         public float zoomSensitivity = 1f;
 
+        [Range(1f, 10f)]
+        public float zoomSpeed = 1f;
+
         float verticalOffset;
+        float targetVerticalOffset;
         float horizontalOffset;
+        float targetHorizontalOffset;
         GameObject cameraTarget;
         MapGenerator mapGenerator;
 
@@ -28,7 +33,9 @@ namespace Unity.CitySim.Camera
                 throw new System.Exception("Player not found!");
 
             verticalOffset = startVerticalOffset;
+            targetVerticalOffset = verticalOffset;
             horizontalOffset = maxHorizontalOffset;
+            targetHorizontalOffset = horizontalOffset;
         }
 
         void Update()
@@ -39,23 +46,27 @@ namespace Unity.CitySim.Camera
 
             // If zooming in
             if (zoom < 0) {
-                verticalOffset += zoom;
+                targetVerticalOffset += zoom;
                 // If we are at the lowest allowed vertical offset
-                if (verticalOffset < 0) {
-                    horizontalOffset = System.Math.Max(horizontalOffset + verticalOffset, 0);
-                    verticalOffset = 0;
+                if (targetVerticalOffset < 0) {
+                    targetHorizontalOffset = System.Math.Max(targetHorizontalOffset + targetVerticalOffset, 0);
+                    targetVerticalOffset = 0;
                 }
             }
 
             // If zooming out
             if (zoom > 0) {
-                horizontalOffset += zoom;
+                targetHorizontalOffset += zoom;
                 // If we are at highest allowed horizontal offset
-                if (horizontalOffset > maxHorizontalOffset) {
-                    verticalOffset += horizontalOffset - maxHorizontalOffset;
-                    horizontalOffset = maxHorizontalOffset;
+                if (targetHorizontalOffset > maxHorizontalOffset) {
+                    targetVerticalOffset += targetHorizontalOffset - maxHorizontalOffset;
+                    targetHorizontalOffset = maxHorizontalOffset;
                 }
             }
+
+            // Smoothen camera movement during zooming
+            verticalOffset += (targetVerticalOffset - verticalOffset) * zoomSpeed * Time.deltaTime;
+            horizontalOffset += (targetHorizontalOffset - horizontalOffset) * zoomSpeed * Time.deltaTime;
 
 
             //// OFFSET ////
