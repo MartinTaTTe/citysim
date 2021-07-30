@@ -14,8 +14,8 @@ namespace Unity.CitySim.Camera
         [Range(10, 100)]
         public float maxRotationSpeed = 60f;
 
-        [Range(1, 10)]
-        public float rotationAcceleration = 1f;
+        [Range(10, 100)]
+        public int rotationAcceleration = 50;
 
         [Range(1, 100)]
         public int shiftModifier = 10;
@@ -78,19 +78,20 @@ namespace Unity.CitySim.Camera
 
             //// ROTATION AROUND TARGET////
             float rotation = 0f;
+            float frameAcceleration = rotationAcceleration * Time.deltaTime;
             
             // Set rotation if buttons 'Q' or 'E' are pressed
             if (Input.GetKey(KeyCode.Q))
-                rotation -= rotationAcceleration;
+                rotation -= frameAcceleration;
             if (Input.GetKey(KeyCode.E))
-                rotation += rotationAcceleration;
+                rotation += frameAcceleration;
 
             // Apply the rotation acceleration to the rotation speed
             if (rotation == 0) {
                 if (rotationSpeed < 0)
-                    rotationSpeed = Mathf.Min(rotationSpeed + rotationAcceleration, 0);
+                    rotationSpeed = Mathf.Min(rotationSpeed + frameAcceleration, 0);
                 else if (rotationSpeed > 0)
-                    rotationSpeed = Mathf.Max(rotationSpeed - rotationAcceleration, 0);
+                    rotationSpeed = Mathf.Max(rotationSpeed - frameAcceleration, 0);
             } else // if there is rotation input
                 rotationSpeed = Mathf.Clamp(rotationSpeed + rotation, -maxRotationSpeed, maxRotationSpeed);
 

@@ -664,7 +664,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7672560092516540882, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
       propertyPath: rotationAcceleration
-      value: 1
+      value: 80
       objectReference: {fileID: 0}
     - target: {fileID: 7672560092516540883, guid: db7f8e63836fcd741b6d585f4b28a00c, type: 3}
       propertyPath: m_RootOrder
