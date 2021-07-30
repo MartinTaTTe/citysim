@@ -34,10 +34,11 @@ namespace Unity.CitySim.Map
         public float lacunarity = 2f;
 
         [Header("")]
+        public Gradient gradient;
         public GameObject TerrainType;
+        public float mapSize;
 
         GameObject[,] terrainChunks;
-        public float mapSize;
 
         // Returns the terrain chunk at x, y and generates it if necessary
         public GameObject GetChunk(int x, int y)

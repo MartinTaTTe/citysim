@@ -5,7 +5,6 @@ namespace Unity.CitySim.Map
     [RequireComponent(typeof(MeshFilter))]
     public class TerrainGenerator : MonoBehaviour
     {
-        public Gradient gradient;
 
         Vector2 offset; // Offset from world origo
         Vector2 perlinOffset; // Offset for Perlin noise
@@ -39,7 +38,7 @@ namespace Unity.CitySim.Map
                     vertices[i] = new Vector3(lod * x, height, lod * y);
 
                     // Color
-                    colors[i++] = gradient.Evaluate(
+                    colors[i++] = mapGenerator.gradient.Evaluate(
                         Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
                     );
                 }
