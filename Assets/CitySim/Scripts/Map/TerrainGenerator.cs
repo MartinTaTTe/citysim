@@ -7,20 +7,20 @@ namespace Unity.CitySim.Map
     {
 
         Vector2 offset; // Offset from world origo
-        Vector2 perlinOffset; // Offset for Perlin noise
-        int size; // Size of terrain chunk in quads
-        float quadSize; // Level Of Detail, size of quad
-        int octaves; // Number of layers of Perlin noise
-        float initialAmplitude; // Initial amplitude for Perlin noise
-        float persistance; // Amplitude modifier (Overall height of terrain)
-        float initialFrequency; // Initial frequency for Perlin noise
-        float lacunarity; // Frequency modifier (Density of peaks)
+        static Vector2 perlinOffset; // Offset for Perlin noise
+        static int size; // Size of terrain chunk in quads
+        static float quadSize; // Level Of Detail, size of quad
+        static int octaves; // Number of layers of Perlin noise
+        static float initialAmplitude; // Initial amplitude for Perlin noise
+        static float persistance; // Amplitude modifier (Overall height of terrain)
+        static float initialFrequency; // Initial frequency for Perlin noise
+        static float lacunarity; // Frequency modifier (Density of peaks)
 
         Mesh mesh;
         Vector3[] vertices;
         Color[] colors;
         int[] triangles;
-        MapGenerator mapGenerator;
+        static MapGenerator mapGenerator;
 
         public void SetOffset(Vector2 offset)
         {
@@ -34,7 +34,7 @@ namespace Unity.CitySim.Map
             for (int i = 0, y = 0; y <= size; y++) {
                 for (int x = 0; x <= size; x++) {
                     // Height
-                    float height = GenerateHeight(x, y);
+                    float height = GenerateHeight(offset, x, y);
                     vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
 
                     // Color
@@ -65,7 +65,7 @@ namespace Unity.CitySim.Map
         }
 
         // Algorithm for generating the height based on x, y and offset using Perlin noise
-        float GenerateHeight(int x, int y)
+        static float GenerateHeight(Vector2 offset, int x, int y)
         {
             float amplitude = initialAmplitude;
             float frequency = initialFrequency;
@@ -175,14 +175,14 @@ namespace Unity.CitySim.Map
         {
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
-            this.size = mapGenerator.chunkSize;
-            this.quadSize = mapGenerator.quadSize;
-            this.perlinOffset = mapGenerator.perlinOffset;
-            this.octaves = mapGenerator.octaves;
-            this.initialAmplitude = mapGenerator.initialAmplitude;
-            this.persistance = mapGenerator.persistance;
-            this.initialFrequency = mapGenerator.initialFrequency;
-            this.lacunarity = mapGenerator.lacunarity;
+            size = mapGenerator.chunkSize;
+            quadSize = mapGenerator.quadSize;
+            perlinOffset = mapGenerator.perlinOffset;
+            octaves = mapGenerator.octaves;
+            initialAmplitude = mapGenerator.initialAmplitude;
+            persistance = mapGenerator.persistance;
+            initialFrequency = mapGenerator.initialFrequency;
+            lacunarity = mapGenerator.lacunarity;
         }
 
         void Start()
