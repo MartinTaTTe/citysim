@@ -37,6 +37,7 @@ namespace Unity.CitySim.Map
         public Gradient gradient;
         public GameObject TerrainType;
         public float mapSize;
+        public int[] triangles { get; private set; }
 
         GameObject[,] terrainChunks;
 
@@ -112,6 +113,29 @@ namespace Unity.CitySim.Map
             return terrain.GetComponent<TerrainGenerator>().HeightAt(localOffset);
         }
 
+        // Create the triangle array used by every terrain
+        int[] CreateTriangles()
+        {
+            int[] triangles = new int[chunkSize * chunkSize * 6];
+
+            for (int q = 0, t = 0, y = 0; y < chunkSize; y++) {
+                for (int x = 0; x < chunkSize; x++) {
+                    // Order matters!
+                    triangles[t++] = q + 0;
+                    triangles[t++] = q + chunkSize + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + chunkSize + 1;
+                    triangles[t++] = q + chunkSize + 2;
+
+                    q++;
+                }
+                q++;
+            }
+
+            return triangles;
+        }
+
         // Create a new terrain chunk at grid coordinates x, y
         GameObject GenerateChunk(int x, int y)
         {
@@ -135,6 +159,7 @@ namespace Unity.CitySim.Map
         {
             SetMapSize();
             terrainChunks = new GameObject[maxGridSize, maxGridSize];
+            triangles = CreateTriangles();
         }
 
         void OnValidate()

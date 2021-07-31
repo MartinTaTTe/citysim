@@ -19,7 +19,6 @@ namespace Unity.CitySim.Map
         Mesh mesh;
         Vector3[] vertices;
         Color[] colors;
-        int[] triangles;
         static MapGenerator mapGenerator;
 
         public void SetOffset(Vector2 offset)
@@ -42,25 +41,6 @@ namespace Unity.CitySim.Map
                         Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
                     );
                 }
-            }
-
-            // Array for triangle corners
-            triangles = new int[size * size * 6];
-            
-            // Connect verticies to create triangles
-            for (int q = 0, t = 0, y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-                    // Order matters!
-                    triangles[t++] = q + 0;
-                    triangles[t++] = q + size + 1;
-                    triangles[t++] = q + 1;
-                    triangles[t++] = q + 1;
-                    triangles[t++] = q + size + 1;
-                    triangles[t++] = q + size + 2;
-
-                    q++;
-                }
-                q++;
             }
         }
 
@@ -167,8 +147,8 @@ namespace Unity.CitySim.Map
             mesh.Clear();
 
             mesh.vertices = vertices;
-            mesh.triangles = triangles;
             mesh.colors = colors;
+            mesh.triangles = mapGenerator.triangles;
         }
 
         void Awake()
