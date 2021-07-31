@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Unity.CitySim.Map
 {
@@ -27,20 +28,26 @@ namespace Unity.CitySim.Map
             this.offset = offset;
         }
 
-        void GenerateTerrain()
+        struct GenerateTerrainJob : IJob
         {
+            public Vector2 offset;
+            public NativeArray<Vector3> vertices;
+            public NativeArray<Color> colors;
 
-            // Loop through all points in terrain and generate a height and color for each point
-            for (int i = 0, y = 0; y <= size; y++) {
-                for (int x = 0; x <= size; x++) {
-                    // Height
-                    float height = GenerateHeight(offset, x, y);
-                    vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
+            public void Execute()
+            {
+                // Loop through all points in terrain and generate a height and color for each point
+                for (int i = 0, y = 0; y <= size; y++) {
+                    for (int x = 0; x <= size; x++) {
+                        // Height
+                        float height = GenerateHeight(offset, x, y);
+                        vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
 
-                    // Color
-                    colors[i++] = mapGenerator.gradient.Evaluate(
-                        Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
-                    );
+                        // Color
+                        colors[i++] = mapGenerator.gradient.Evaluate(
+                            Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
+                        );
+                    }
                 }
             }
         }
@@ -68,7 +75,7 @@ namespace Unity.CitySim.Map
         // Get the height of the terrain from a local position
         public float HeightAt(Vector2 position)
         {
-            if (vertices == null)
+            if (!terrainHandle.IsCompleted || vertices == null)
                 return 0f;
 
             // Get x, y coordinates among vertices
@@ -164,15 +171,17 @@ namespace Unity.CitySim.Map
             persistance = mapGenerator.persistance;
             initialFrequency = mapGenerator.initialFrequency;
             lacunarity = mapGenerator.lacunarity;
-        }
 
-        void Start()
-        {
             // Arrays for all points in terrain (height and color)
             int arrayLength = (size + 1) * (size + 1);
             vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
             colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
+        }
 
+        bool terrainJobGuard = true;
+        JobHandle terrainHandle;
+        void Start()
+        {
             if (offset == null) {
                 Debug.LogError("Offset not defined for terrain");
                 return;
@@ -181,15 +190,32 @@ namespace Unity.CitySim.Map
             // Create the mesh object
             mesh = new Mesh();
             GetComponent<MeshFilter>().mesh = mesh;
-
-            // Generate terrain and mesh
-            GenerateTerrain();
             transform.Translate(offset.x, 0, offset.y);
-            UpdateMesh();
+
+            // Set up the terrain generation job
+            var terrainJob = new GenerateTerrainJob();
+            terrainJob.offset = offset;
+            terrainJob.vertices = vertices;
+            terrainJob.colors = colors;
+
+            // Start the terrain generation job
+            terrainHandle = terrainJob.Schedule();
+        }
+
+        void Update()
+        {
+            // Wait for terrain generation job to finish
+            if (terrainJobGuard && terrainHandle.IsCompleted) {
+                terrainJobGuard = false;
+                terrainHandle.Complete();
+                UpdateMesh();
+            }
         }
 
         void OnDestroy()
         {
+            // Free up memory
+            terrainHandle.Complete();
             vertices.Dispose();
             colors.Dispose();
         }
