@@ -10,7 +10,7 @@ namespace Unity.CitySim.Map
         public int chunkSize = 512;
 
         [Range(0.5f, 10f)]
-        public float levelOfDetail = 1f;
+        public float quadSize = 1f;
 
         [Range(2, 100)]
         public int maxGridSize = 10;
@@ -76,8 +76,8 @@ namespace Unity.CitySim.Map
             int xInt, yInt;
 
             // Translate the world space coordinates to grid coordinates
-            xInt = (int)(x / (chunkSize * levelOfDetail));
-            yInt = (int)(y / (chunkSize * levelOfDetail));
+            xInt = (int)(x / (chunkSize * quadSize));
+            yInt = (int)(y / (chunkSize * quadSize));
 
             // Clamp coordinates to be within limits
             xInt = Mathf.Clamp(xInt, 0, maxGridSize - 1);
@@ -105,8 +105,8 @@ namespace Unity.CitySim.Map
 
             // Get the offset within the chunk
             Vector2 localOffset = new Vector2(
-                position.x - (gridPos.x * chunkSize * levelOfDetail),
-                position.z - (gridPos.y * chunkSize * levelOfDetail)
+                position.x - (gridPos.x * chunkSize * quadSize),
+                position.z - (gridPos.y * chunkSize * quadSize)
             );
 
             return terrain.GetComponent<TerrainGenerator>().HeightAt(localOffset);
@@ -119,7 +119,7 @@ namespace Unity.CitySim.Map
             terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
 
             // Set the offset for the new terrain chunk
-            Vector2 offset = new Vector2(x * chunkSize * levelOfDetail, y * chunkSize * levelOfDetail);
+            Vector2 offset = new Vector2(x * chunkSize * quadSize, y * chunkSize * quadSize);
             terrainChunks[x,y].GetComponent<TerrainGenerator>().SetOffset(offset);
             
             return terrainChunks[x, y];
@@ -128,7 +128,7 @@ namespace Unity.CitySim.Map
         // Set the size of the map in units
         void SetMapSize()
         {
-            mapSize = chunkSize * levelOfDetail * maxGridSize;
+            mapSize = chunkSize * quadSize * maxGridSize;
         }
 
         void Awake()

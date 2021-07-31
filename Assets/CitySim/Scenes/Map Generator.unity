@@ -342,7 +342,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   chunkSize: 250
-  levelOfDetail: 4
+  quadSize: 2
   maxGridSize: 20
   perlinOffset: {x: 0, y: 0}
   octaves: 10
@@ -352,22 +352,22 @@ MonoBehaviour:
   lacunarity: 6
   gradient:
     serializedVersion: 2
-    key0: {r: 0, g: 0.12533785, b: 0.9056604, a: 1}
-    key1: {r: 0.9056604, g: 0.8435842, b: 0.44001427, a: 1}
+    key0: {r: 0.18970275, g: 0.25564727, b: 0.8207547, a: 1}
+    key1: {r: 0.8207547, g: 0.7836791, b: 0.40650585, a: 1}
     key2: {r: 0.031372547, g: 0.8235294, b: 0.044562407, a: 1}
     key3: {r: 0.070334345, g: 0.5170423, b: 0.06332325, a: 0}
     key4: {r: 0.08004714, g: 0.3584906, b: 0.06594875, a: 0}
     key5: {r: 0.13386077, g: 0.26415092, b: 0.12335349, a: 0}
     key6: {r: 0.19077817, g: 0.2735849, b: 0.1742168, a: 0}
     key7: {r: 0.21293166, g: 0.31132078, b: 0.22705774, a: 0}
-    ctime0: 22937
-    ctime1: 22944
-    ctime2: 24903
-    ctime3: 29491
-    ctime4: 34078
-    ctime5: 38666
-    ctime6: 43253
-    ctime7: 47841
+    ctime0: 26869
+    ctime1: 26935
+    ctime2: 29491
+    ctime3: 34078
+    ctime4: 38666
+    ctime5: 43253
+    ctime6: 47841
+    ctime7: 52428
     atime0: 0
     atime1: 65535
     atime2: 65535
@@ -380,7 +380,7 @@ MonoBehaviour:
     m_NumColorKeys: 8
     m_NumAlphaKeys: 2
   TerrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
-  mapSize: 20000
+  mapSize: 10000
 --- !u!114 &288710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -393,7 +393,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e700f70981add843a9038dbbe0f08d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderRange: 4000
+  renderRange: 2000
 --- !u!1 &665472417
 GameObject:
   m_ObjectHideFlags: 0

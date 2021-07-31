@@ -9,7 +9,7 @@ namespace Unity.CitySim.Map
         Vector2 offset; // Offset from world origo
         Vector2 perlinOffset; // Offset for Perlin noise
         int size; // Size of terrain chunk in quads
-        float lod; // Level Of Detail, size of quad
+        float quadSize; // Level Of Detail, size of quad
         int octaves; // Number of layers of Perlin noise
         float initialAmplitude; // Initial amplitude for Perlin noise
         float persistance; // Amplitude modifier (Overall height of terrain)
@@ -35,7 +35,7 @@ namespace Unity.CitySim.Map
                 for (int x = 0; x <= size; x++) {
                     // Height
                     float height = GenerateHeight(x, y);
-                    vertices[i] = new Vector3(lod * x, height, lod * y);
+                    vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
 
                     // Color
                     colors[i++] = mapGenerator.gradient.Evaluate(
@@ -72,8 +72,8 @@ namespace Unity.CitySim.Map
             float noise = 0;
 
             for (int i = 0; i < octaves; i++) {
-                float perlinX = (offset.x + x * lod) / size * frequency;
-                float perlinY = (offset.y + y * lod) / size * frequency;
+                float perlinX = (offset.x + x * quadSize) / size * frequency;
+                float perlinY = (offset.y + y * quadSize) / size * frequency;
                 float perlin = Mathf.PerlinNoise(perlinX + perlinOffset.x, perlinY + perlinOffset.y);
                 noise += perlin * amplitude;
 
@@ -92,8 +92,8 @@ namespace Unity.CitySim.Map
 
             // Get x, y coordinates among vertices
             Vector2Int vertex = new Vector2Int(
-                (int)(position.x / lod),
-                (int)(position.y / lod)
+                (int)(position.x / quadSize),
+                (int)(position.y / quadSize)
             );
 
             // Index in vertices array
@@ -102,8 +102,8 @@ namespace Unity.CitySim.Map
             int i = vertex.x + vertex.y * (size + 1);
 
             // Get local coordinates within quad (0 to 1)
-            float x = position.x / lod - vertex.x;
-            float y = position.y / lod - vertex.y;
+            float x = position.x / quadSize - vertex.x;
+            float y = position.y / quadSize - vertex.y;
             float xi = 1 - x;
             float yi = 1 - y;
 
@@ -176,7 +176,7 @@ namespace Unity.CitySim.Map
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
             this.size = mapGenerator.chunkSize;
-            this.lod = mapGenerator.levelOfDetail;
+            this.quadSize = mapGenerator.quadSize;
             this.perlinOffset = mapGenerator.perlinOffset;
             this.octaves = mapGenerator.octaves;
             this.initialAmplitude = mapGenerator.initialAmplitude;
