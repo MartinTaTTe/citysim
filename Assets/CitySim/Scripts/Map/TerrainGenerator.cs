@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Collections;
 
 namespace Unity.CitySim.Map
 {
@@ -17,8 +18,8 @@ namespace Unity.CitySim.Map
         static float lacunarity; // Frequency modifier (Density of peaks)
 
         Mesh mesh;
-        Vector3[] vertices;
-        Color[] colors;
+        NativeArray<Vector3> vertices;
+        NativeArray<Color> colors;
         static MapGenerator mapGenerator;
 
         public void SetOffset(Vector2 offset)
@@ -146,8 +147,8 @@ namespace Unity.CitySim.Map
         {
             mesh.Clear();
 
-            mesh.vertices = vertices;
-            mesh.colors = colors;
+            mesh.vertices = vertices.ToArray();
+            mesh.colors = colors.ToArray();
             mesh.triangles = mapGenerator.triangles;
         }
 
@@ -168,8 +169,9 @@ namespace Unity.CitySim.Map
         void Start()
         {
             // Arrays for all points in terrain (height and color)
-            vertices = new Vector3[(size + 1) * (size + 1)];
-            colors = new Color[vertices.Length];
+            int arrayLength = (size + 1) * (size + 1);
+            vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
+            colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
 
             if (offset == null) {
                 Debug.LogError("Offset not defined for terrain");
@@ -184,6 +186,12 @@ namespace Unity.CitySim.Map
             GenerateTerrain();
             transform.Translate(offset.x, 0, offset.y);
             UpdateMesh();
+        }
+
+        void OnDestroy()
+        {
+            vertices.Dispose();
+            colors.Dispose();
         }
     }
 }
