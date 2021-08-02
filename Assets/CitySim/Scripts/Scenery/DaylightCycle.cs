@@ -1,21 +1,23 @@
 using UnityEngine;
 
-public class DaylightCycle : MonoBehaviour
+namespace Unity.CitySim.Scenery
 {
-    [Range(0, 100)]
-    public int speed = 10;
-    
-    void Update()
+    public class DaylightCycle : MonoBehaviour
     {
-        Vector3 rotation = new Vector3();
+        [Range(0, 100)]
+        public int speed = 10;
 
-        // Brightness of the sky
-        rotation.x = Time.deltaTime * speed;
+        void Update()
+        {
+            Vector3 rotation = new Vector3();
 
-        // Brightness of the light
-        rotation.y = Time.deltaTime * speed;
+            // Brightness of the sky
+            rotation.x = Time.deltaTime * speed;
 
-        transform.Rotate(rotation);
+            // Brightness of the light
+            rotation.y = Time.deltaTime * speed;
+
+            transform.Rotate(rotation);
+        }
     }
-
 }

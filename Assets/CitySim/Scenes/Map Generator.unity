@@ -344,7 +344,7 @@ MonoBehaviour:
   chunkSize: 250
   quadSize: 2
   maxGridSize: 20
-  perlinOffset: {x: 0, y: 0}
+  perlinOffset: {x: 9.7, y: 0}
   octaves: 10
   initialAmplitude: 2000
   persistance: 0.2
