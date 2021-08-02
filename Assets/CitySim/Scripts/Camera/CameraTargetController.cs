@@ -19,6 +19,9 @@ namespace Unity.CitySim.Camera
 
         [Range(1, 100)]
         public int shiftModifier = 10;
+
+        [Range(0, 1000)]
+        public int spawnHeight = 100;
         
         float rotationSpeed = 0f;
         bool onGround;
@@ -39,10 +42,10 @@ namespace Unity.CitySim.Camera
         void Start()
         {
             // Get height of map
-            float mapHeight = mapGenerator.initialAmplitude;
+            float middle = mapGenerator.mapSize / 2;
+            float mapHeight = mapGenerator.HeightAt(new Vector3(middle, 0, middle)) + spawnHeight;
             
             // Move camera to center of terrain
-            float middle = mapGenerator.mapSize / 2;
             transform.Translate(middle, mapHeight, middle);
         }
 

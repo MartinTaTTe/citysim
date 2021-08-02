@@ -22,11 +22,8 @@ namespace Unity.CitySim.Map
         NativeArray<Vector3> vertices;
         NativeArray<Color> colors;
         static MapGenerator mapGenerator;
-
-        public void SetOffset(Vector2 offset)
-        {
-            this.offset = offset;
-        }
+        bool terrainJobGuard = true;
+        JobHandle terrainHandle;
 
         struct GenerateTerrainJob : IJob
         {
@@ -78,7 +75,9 @@ namespace Unity.CitySim.Map
         // Get the height of the terrain from a local position
         public float HeightAt(Vector2 position)
         {
-            if (!terrainHandle.IsCompleted || vertices == null)
+            // Ensure vertices exist and can be accessed
+            terrainHandle.Complete();
+            if (vertices == null)
                 return 0f;
 
             // Get x, y coordinates among vertices
@@ -166,6 +165,7 @@ namespace Unity.CitySim.Map
         {
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
+            // Get values from map generator
             size = mapGenerator.chunkSize;
             quadSize = mapGenerator.quadSize;
             perlinOffset = mapGenerator.perlinOffset;
@@ -174,21 +174,12 @@ namespace Unity.CitySim.Map
             persistance = mapGenerator.persistance;
             initialFrequency = mapGenerator.initialFrequency;
             lacunarity = mapGenerator.lacunarity;
+            offset = mapGenerator.currentChunkOffset;
 
             // Arrays for all points in terrain (height and color)
             int arrayLength = (size + 1) * (size + 1);
             vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
             colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
-        }
-
-        bool terrainJobGuard = true;
-        JobHandle terrainHandle;
-        void Start()
-        {
-            if (offset == null) {
-                Debug.LogError("Offset not defined for terrain");
-                return;
-            }
 
             // Create the mesh object
             mesh = new Mesh();

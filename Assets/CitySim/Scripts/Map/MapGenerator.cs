@@ -6,8 +6,8 @@ namespace Unity.CitySim.Map
     {
         [Header("Map parameters")]
 
-        [Range(10, 1000)]
-        public int chunkSize = 512;
+        [Range(0, 255)]
+        public int chunkSize = 250;
 
         [Range(0.5f, 10f)]
         public float quadSize = 1f;
@@ -45,6 +45,7 @@ namespace Unity.CitySim.Map
         public GameObject TerrainType;
         public float mapSize;
         public int[] triangles { get; private set; }
+        public Vector2 currentChunkOffset { get; private set; }
 
         GameObject[,] terrainChunks;
         GradientColorKey[] colorKey;
@@ -107,7 +108,7 @@ namespace Unity.CitySim.Map
             Vector2Int gridPos = GetGridCoords(position);
 
             // Get the chunk where we are
-            GameObject terrain = GetChunkIfExist(gridPos.x, gridPos.y);
+            GameObject terrain = GetChunk(gridPos.x, gridPos.y);
 
             // If height requested in undefined chunk
             if (terrain == null)
@@ -175,12 +176,11 @@ namespace Unity.CitySim.Map
         // Create a new terrain chunk at grid coordinates x, y
         GameObject GenerateChunk(int x, int y)
         {
+            // Set offset of chunk to be generated
+            currentChunkOffset = new Vector2(x * chunkSize * quadSize, y * chunkSize * quadSize);
+
             // Copy the Terrain Type
             terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
-
-            // Set the offset for the new terrain chunk
-            Vector2 offset = new Vector2(x * chunkSize * quadSize, y * chunkSize * quadSize);
-            terrainChunks[x,y].GetComponent<TerrainGenerator>().SetOffset(offset);
             
             return terrainChunks[x, y];
         }
