@@ -68,6 +68,9 @@ namespace Unity.CitySim.Map
                 amplitude *= persistance;
                 frequency *= lacunarity;
             }
+
+            // Limits the lowest point to water level
+            noise = Mathf.Max(noise, mapGenerator.waterLevel * mapGenerator.initialAmplitude);
             
             return noise;
         }

@@ -34,12 +34,21 @@ namespace Unity.CitySim.Map
         public float lacunarity = 2f;
 
         [Header("")]
-        public Gradient gradient;
+        [Range(0f, 1f)]
+        public float waterLevel = 0.4f;
+        public Color water;
+
+        [Range(0f, 0.2f)]
+        public float landStep = 0.1f;
+        public Color[] land;
+        public Gradient gradient { get; private set; }
         public GameObject TerrainType;
         public float mapSize;
         public int[] triangles { get; private set; }
 
         GameObject[,] terrainChunks;
+        GradientColorKey[] colorKey;
+        GradientAlphaKey[] alphaKey;
 
         // Returns the terrain chunk at x, y and generates it if necessary
         public GameObject GetChunk(int x, int y)
@@ -136,6 +145,33 @@ namespace Unity.CitySim.Map
             return triangles;
         }
 
+        // Create the gradient
+        Gradient CreateGradient()
+        {
+            Gradient gradient = new Gradient();
+
+            // Add colors to colorKey
+            colorKey = new GradientColorKey[land.Length + 1];
+            colorKey[0].color = water;
+            colorKey[0].time = waterLevel;
+
+            for (int i = 0; i < land.Length; i++) {
+                colorKey[i + 1].color = land[i];
+                colorKey[i + 1].time = waterLevel + i * landStep;
+            }
+
+            // Add alphas to alphaKey
+            alphaKey = new GradientAlphaKey[2];
+            alphaKey[0].alpha = 1.0f;
+            alphaKey[0].time = 0.0f;
+            alphaKey[1].alpha = 1.0f;
+            alphaKey[1].time = 1.0f;
+
+            gradient.SetKeys(colorKey, alphaKey);
+
+            return gradient;
+        }
+
         // Create a new terrain chunk at grid coordinates x, y
         GameObject GenerateChunk(int x, int y)
         {
@@ -159,6 +195,7 @@ namespace Unity.CitySim.Map
         {
             SetMapSize();
             terrainChunks = new GameObject[maxGridSize, maxGridSize];
+            gradient = CreateGradient();
             triangles = CreateTriangles();
         }
 
@@ -166,6 +203,10 @@ namespace Unity.CitySim.Map
         {
             // Max Grid Size
             maxGridSize = maxGridSize / 2 * 2;
+
+            // Disallow more than 7 colors for land
+            if (land.Length > 7)
+                System.Array.Resize(ref land, 7);
 
             SetMapSize();
         }
