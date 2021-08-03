@@ -43,7 +43,7 @@ namespace Unity.CitySim.Camera
         {
             // Get height of map
             float middle = mapGenerator.mapSize / 2;
-            float mapHeight = mapGenerator.HeightAt(new Vector3(middle, 0, middle)) + spawnHeight;
+            float mapHeight = mapGenerator.HeightAt(middle, middle) + spawnHeight;
             
             // Move camera to center of terrain
             transform.Translate(middle, mapHeight, middle);

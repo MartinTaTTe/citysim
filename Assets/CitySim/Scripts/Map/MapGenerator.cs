@@ -102,10 +102,9 @@ namespace Unity.CitySim.Map
         }
 
         // Get the height of the terrain from a world position
-        public float HeightAt(Vector3 position)
-        {
+        public float HeightAt(float x, float y) {
             // Get the position in grid coordinates
-            Vector2Int gridPos = GetGridCoords(position);
+            Vector2Int gridPos = GetGridCoords(x, y);
 
             // Get the chunk where we are
             GameObject terrain = GetChunk(gridPos.x, gridPos.y);
@@ -116,11 +115,16 @@ namespace Unity.CitySim.Map
 
             // Get the offset within the chunk
             Vector2 localOffset = new Vector2(
-                position.x - (gridPos.x * chunkSize * quadSize),
-                position.z - (gridPos.y * chunkSize * quadSize)
+                x - (gridPos.x * chunkSize * quadSize),
+                y - (gridPos.y * chunkSize * quadSize)
             );
 
             return terrain.GetComponent<TerrainGenerator>().HeightAt(localOffset);
+        }
+
+        public float HeightAt(Vector3 position)
+        {
+            return HeightAt(position.x, position.z);
         }
 
         // Create the triangle array used by every terrain
