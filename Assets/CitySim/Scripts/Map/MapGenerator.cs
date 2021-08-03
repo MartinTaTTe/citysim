@@ -6,11 +6,11 @@ namespace Unity.CitySim.Map
     {
         [Header("Map parameters")]
 
-        [Range(10, 1000)]
-        public int chunkSize = 512;
+        [Range(0, 255)]
+        public int chunkSize = 250;
 
         [Range(0.5f, 10f)]
-        public float levelOfDetail = 1f;
+        public float quadSize = 1f;
 
         [Range(2, 100)]
         public int maxGridSize = 10;
@@ -34,11 +34,22 @@ namespace Unity.CitySim.Map
         public float lacunarity = 2f;
 
         [Header("")]
-        public Gradient gradient;
+        [Range(0f, 1f)]
+        public float waterLevel = 0.4f;
+        public Color water;
+
+        [Range(0f, 0.2f)]
+        public float landStep = 0.1f;
+        public Color[] land;
+        public Gradient gradient { get; private set; }
         public GameObject TerrainType;
         public float mapSize;
+        public int[] triangles { get; private set; }
+        public Vector2 currentChunkOffset { get; private set; }
 
         GameObject[,] terrainChunks;
+        GradientColorKey[] colorKey;
+        GradientAlphaKey[] alphaKey;
 
         // Returns the terrain chunk at x, y and generates it if necessary
         public GameObject GetChunk(int x, int y)
@@ -76,8 +87,8 @@ namespace Unity.CitySim.Map
             int xInt, yInt;
 
             // Translate the world space coordinates to grid coordinates
-            xInt = (int)(x / (chunkSize * levelOfDetail));
-            yInt = (int)(y / (chunkSize * levelOfDetail));
+            xInt = (int)(x / (chunkSize * quadSize));
+            yInt = (int)(y / (chunkSize * quadSize));
 
             // Clamp coordinates to be within limits
             xInt = Mathf.Clamp(xInt, 0, maxGridSize - 1);
@@ -91,13 +102,12 @@ namespace Unity.CitySim.Map
         }
 
         // Get the height of the terrain from a world position
-        public float HeightAt(Vector3 position)
-        {
+        public float HeightAt(float x, float y) {
             // Get the position in grid coordinates
-            Vector2Int gridPos = GetGridCoords(position);
+            Vector2Int gridPos = GetGridCoords(x, y);
 
             // Get the chunk where we are
-            GameObject terrain = GetChunkIfExist(gridPos.x, gridPos.y);
+            GameObject terrain = GetChunk(gridPos.x, gridPos.y);
 
             // If height requested in undefined chunk
             if (terrain == null)
@@ -105,22 +115,76 @@ namespace Unity.CitySim.Map
 
             // Get the offset within the chunk
             Vector2 localOffset = new Vector2(
-                position.x - (gridPos.x * chunkSize * levelOfDetail),
-                position.z - (gridPos.y * chunkSize * levelOfDetail)
+                x - (gridPos.x * chunkSize * quadSize),
+                y - (gridPos.y * chunkSize * quadSize)
             );
 
             return terrain.GetComponent<TerrainGenerator>().HeightAt(localOffset);
         }
 
+        public float HeightAt(Vector3 position)
+        {
+            return HeightAt(position.x, position.z);
+        }
+
+        // Create the triangle array used by every terrain
+        int[] CreateTriangles()
+        {
+            int[] triangles = new int[chunkSize * chunkSize * 6];
+
+            for (int q = 0, t = 0, y = 0; y < chunkSize; y++) {
+                for (int x = 0; x < chunkSize; x++) {
+                    // Order matters!
+                    triangles[t++] = q + 0;
+                    triangles[t++] = q + chunkSize + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + 1;
+                    triangles[t++] = q + chunkSize + 1;
+                    triangles[t++] = q + chunkSize + 2;
+
+                    q++;
+                }
+                q++;
+            }
+
+            return triangles;
+        }
+
+        // Create the gradient
+        Gradient CreateGradient()
+        {
+            Gradient gradient = new Gradient();
+
+            // Add colors to colorKey
+            colorKey = new GradientColorKey[land.Length + 1];
+            colorKey[0].color = water;
+            colorKey[0].time = waterLevel;
+
+            for (int i = 0; i < land.Length; i++) {
+                colorKey[i + 1].color = land[i];
+                colorKey[i + 1].time = waterLevel + i * landStep;
+            }
+
+            // Add alphas to alphaKey
+            alphaKey = new GradientAlphaKey[2];
+            alphaKey[0].alpha = 1.0f;
+            alphaKey[0].time = 0.0f;
+            alphaKey[1].alpha = 1.0f;
+            alphaKey[1].time = 1.0f;
+
+            gradient.SetKeys(colorKey, alphaKey);
+
+            return gradient;
+        }
+
         // Create a new terrain chunk at grid coordinates x, y
         GameObject GenerateChunk(int x, int y)
         {
+            // Set offset of chunk to be generated
+            currentChunkOffset = new Vector2(x * chunkSize * quadSize, y * chunkSize * quadSize);
+
             // Copy the Terrain Type
             terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
-
-            // Set the offset for the new terrain chunk
-            Vector2 offset = new Vector2(x * chunkSize * levelOfDetail, y * chunkSize * levelOfDetail);
-            terrainChunks[x,y].GetComponent<TerrainGenerator>().SetOffset(offset);
             
             return terrainChunks[x, y];
         }
@@ -128,19 +192,25 @@ namespace Unity.CitySim.Map
         // Set the size of the map in units
         void SetMapSize()
         {
-            mapSize = chunkSize * levelOfDetail * maxGridSize;
+            mapSize = chunkSize * quadSize * maxGridSize;
         }
 
         void Awake()
         {
             SetMapSize();
             terrainChunks = new GameObject[maxGridSize, maxGridSize];
+            gradient = CreateGradient();
+            triangles = CreateTriangles();
         }
 
         void OnValidate()
         {
             // Max Grid Size
             maxGridSize = maxGridSize / 2 * 2;
+
+            // Disallow more than 7 colors for land
+            if (land.Length > 7)
+                System.Array.Resize(ref land, 7);
 
             SetMapSize();
         }

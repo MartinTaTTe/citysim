@@ -20,21 +20,23 @@ namespace Unity.CitySim.Map
             // Get the end coordinates
             Vector2Int to = mapGenerator.GetGridCoords(position.x + renderRange, position.y + renderRange);
 
-            // Deactivate all terrains
             for (int x = 0; x < mapGenerator.maxGridSize; x++) {
                 for (int y = 0; y < mapGenerator.maxGridSize; y++) {
-                    GameObject chunk = mapGenerator.GetChunkIfExist(x, y);
-                    if (chunk)
-                        chunk.SetActive(false);
+                    // Activate terrains within render
+                    if (InRange(x, from.x, to.x) && InRange(y, from.y, to.y)) {
+                        mapGenerator.GetChunk(x, y).SetActive(true);
+                    }
+                    // Deactivate any terrains outside render
+                    else if (mapGenerator.GetChunkIfExist(x, y)) {
+                        mapGenerator.GetChunkIfExist(x, y).SetActive(false);
+                    }
                 }
             }
+        }
 
-            // Activate all terrains within render distance
-            for (int x = from.x; x <= to.x; x++) {
-                for (int y = from.y; y <= to.y; y++) {
-                    mapGenerator.GetChunk(x, y).SetActive(true);
-                }
-            }
+        bool InRange(int value, int min, int max)
+        {
+            return value >= min && value <= max;
         }
 
         void Awake()

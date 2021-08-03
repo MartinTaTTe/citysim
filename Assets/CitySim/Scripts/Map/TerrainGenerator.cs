@@ -1,4 +1,6 @@
 using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 
 namespace Unity.CitySim.Map
 {
@@ -7,79 +9,65 @@ namespace Unity.CitySim.Map
     {
 
         Vector2 offset; // Offset from world origo
-        Vector2 perlinOffset; // Offset for Perlin noise
-        int size; // Size of terrain chunk in quads
-        float lod; // Level Of Detail, size of quad
-        int octaves; // Number of layers of Perlin noise
-        float initialAmplitude; // Initial amplitude for Perlin noise
-        float persistance; // Amplitude modifier (Overall height of terrain)
-        float initialFrequency; // Initial frequency for Perlin noise
-        float lacunarity; // Frequency modifier (Density of peaks)
+        static Vector2 perlinOffset; // Offset for Perlin noise
+        static int size; // Size of terrain chunk in quads
+        static float quadSize; // Level Of Detail, size of quad
+        static int octaves; // Number of layers of Perlin noise
+        static float initialAmplitude; // Initial amplitude for Perlin noise
+        static float persistance; // Amplitude modifier (Overall height of terrain)
+        static float initialFrequency; // Initial frequency for Perlin noise
+        static float lacunarity; // Frequency modifier (Density of peaks)
 
         Mesh mesh;
-        Vector3[] vertices;
-        Color[] colors;
-        int[] triangles;
-        MapGenerator mapGenerator;
+        NativeArray<Vector3> vertices;
+        NativeArray<Color> colors;
+        static MapGenerator mapGenerator;
+        bool terrainJobGuard = true;
+        JobHandle terrainHandle;
 
-        public void SetOffset(Vector2 offset)
+        struct GenerateTerrainJob : IJob
         {
-            this.offset = offset;
-        }
+            public Vector2 offset;
+            public NativeArray<Vector3> vertices;
+            public NativeArray<Color> colors;
 
-        void GenerateTerrain()
-        {
+            public void Execute()
+            {
+                // Loop through all points in terrain and generate a height and color for each point
+                for (int i = 0, y = 0; y <= size; y++) {
+                    for (int x = 0; x <= size; x++) {
+                        // Height
+                        float height = GenerateHeight(offset, x, y);
+                        vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
 
-            // Loop through all points in terrain and generate a height and color for each point
-            for (int i = 0, y = 0; y <= size; y++) {
-                for (int x = 0; x <= size; x++) {
-                    // Height
-                    float height = GenerateHeight(x, y);
-                    vertices[i] = new Vector3(lod * x, height, lod * y);
-
-                    // Color
-                    colors[i++] = mapGenerator.gradient.Evaluate(
-                        Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
-                    );
+                        // Color
+                        colors[i++] = mapGenerator.gradient.Evaluate(
+                            Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
+                        );
+                    }
                 }
-            }
-
-            // Array for triangle corners
-            triangles = new int[size * size * 6];
-            
-            // Connect verticies to create triangles
-            for (int q = 0, t = 0, y = 0; y < size; y++) {
-                for (int x = 0; x < size; x++) {
-                    // Order matters!
-                    triangles[t++] = q + 0;
-                    triangles[t++] = q + size + 1;
-                    triangles[t++] = q + 1;
-                    triangles[t++] = q + 1;
-                    triangles[t++] = q + size + 1;
-                    triangles[t++] = q + size + 2;
-
-                    q++;
-                }
-                q++;
             }
         }
 
         // Algorithm for generating the height based on x, y and offset using Perlin noise
-        float GenerateHeight(int x, int y)
+        static float GenerateHeight(Vector2 offset, int x, int y)
         {
             float amplitude = initialAmplitude;
             float frequency = initialFrequency;
             float noise = 0;
 
             for (int i = 0; i < octaves; i++) {
-                float perlinX = (offset.x + x * lod) / size * frequency;
-                float perlinY = (offset.y + y * lod) / size * frequency;
+                float perlinX = (offset.x + x * quadSize) / size * frequency;
+                float perlinY = (offset.y + y * quadSize) / size * frequency;
                 float perlin = Mathf.PerlinNoise(perlinX + perlinOffset.x, perlinY + perlinOffset.y);
                 noise += perlin * amplitude;
 
                 amplitude *= persistance;
                 frequency *= lacunarity;
             }
+
+            // Limits the lowest point to water level
+            noise = Mathf.Max(noise, mapGenerator.waterLevel * mapGenerator.initialAmplitude);
             
             return noise;
         }
@@ -87,13 +75,15 @@ namespace Unity.CitySim.Map
         // Get the height of the terrain from a local position
         public float HeightAt(Vector2 position)
         {
+            // Ensure vertices exist and can be accessed
+            terrainHandle.Complete();
             if (vertices == null)
                 return 0f;
 
             // Get x, y coordinates among vertices
             Vector2Int vertex = new Vector2Int(
-                (int)(position.x / lod),
-                (int)(position.y / lod)
+                (int)(position.x / quadSize),
+                (int)(position.y / quadSize)
             );
 
             // Index in vertices array
@@ -102,8 +92,8 @@ namespace Unity.CitySim.Map
             int i = vertex.x + vertex.y * (size + 1);
 
             // Get local coordinates within quad (0 to 1)
-            float x = position.x / lod - vertex.x;
-            float y = position.y / lod - vertex.y;
+            float x = position.x / quadSize - vertex.x;
+            float y = position.y / quadSize - vertex.y;
             float xi = 1 - x;
             float yi = 1 - y;
 
@@ -166,44 +156,62 @@ namespace Unity.CitySim.Map
         {
             mesh.Clear();
 
-            mesh.vertices = vertices;
-            mesh.triangles = triangles;
-            mesh.colors = colors;
+            mesh.vertices = vertices.ToArray();
+            mesh.colors = colors.ToArray();
+            mesh.triangles = mapGenerator.triangles;
         }
 
         void Awake()
         {
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
-            this.size = mapGenerator.chunkSize;
-            this.lod = mapGenerator.levelOfDetail;
-            this.perlinOffset = mapGenerator.perlinOffset;
-            this.octaves = mapGenerator.octaves;
-            this.initialAmplitude = mapGenerator.initialAmplitude;
-            this.persistance = mapGenerator.persistance;
-            this.initialFrequency = mapGenerator.initialFrequency;
-            this.lacunarity = mapGenerator.lacunarity;
-        }
+            // Get values from map generator
+            size = mapGenerator.chunkSize;
+            quadSize = mapGenerator.quadSize;
+            perlinOffset = mapGenerator.perlinOffset;
+            octaves = mapGenerator.octaves;
+            initialAmplitude = mapGenerator.initialAmplitude;
+            persistance = mapGenerator.persistance;
+            initialFrequency = mapGenerator.initialFrequency;
+            lacunarity = mapGenerator.lacunarity;
+            offset = mapGenerator.currentChunkOffset;
 
-        void Start()
-        {
             // Arrays for all points in terrain (height and color)
-            vertices = new Vector3[(size + 1) * (size + 1)];
-            colors = new Color[vertices.Length];
-
-            if (offset == null) {
-                Debug.LogError("Offset not defined for terrain");
-                return;
-            }
+            int arrayLength = (size + 1) * (size + 1);
+            vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
+            colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
 
             // Create the mesh object
             mesh = new Mesh();
             GetComponent<MeshFilter>().mesh = mesh;
-
-            // Generate terrain and mesh
-            GenerateTerrain();
             transform.Translate(offset.x, 0, offset.y);
-            UpdateMesh();
+
+            // Set up the terrain generation job
+            var terrainJob = new GenerateTerrainJob();
+            terrainJob.offset = offset;
+            terrainJob.vertices = vertices;
+            terrainJob.colors = colors;
+
+            // Start the terrain generation job
+            terrainHandle = terrainJob.Schedule();
+        }
+
+        void Update()
+        {
+            // Wait for terrain generation job to finish
+            if (terrainJobGuard && terrainHandle.IsCompleted) {
+                terrainJobGuard = false;
+                terrainHandle.Complete();
+                UpdateMesh();
+            }
+        }
+
+        void OnDestroy()
+        {
+            // Free up memory
+            terrainHandle.Complete();
+            vertices.Dispose();
+            colors.Dispose();
         }
     }
 }
