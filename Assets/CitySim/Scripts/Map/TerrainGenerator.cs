@@ -67,7 +67,7 @@ namespace Unity.CitySim.Map
             }
 
             // Limits the lowest point to water level
-            noise = Mathf.Max(noise, mapGenerator.waterLevel * mapGenerator.initialAmplitude);
+            noise = Mathf.Max(noise, mapGenerator.waterLevel * mapGenerator.initialAmplitude - 0.1f);
             
             return noise;
         }
