@@ -373,6 +373,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   renderRange: 2000
+  rayTraceDistance: 500
+  rayTraceInterval: 0.05
 --- !u!1 &665472417
 GameObject:
   m_ObjectHideFlags: 0
@@ -607,6 +609,10 @@ PrefabInstance:
     - target: {fileID: 6846672632091746175, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: m_FocalLength
       value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746175, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: far clip plane
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 6846672632091746175, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: m_projectionMatrixMode

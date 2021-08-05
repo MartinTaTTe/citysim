@@ -19,17 +19,25 @@ namespace Unity.CitySim.Map
         static float lacunarity; // Frequency modifier (Density of peaks)
 
         Mesh mesh;
-        NativeArray<Vector3> vertices;
-        NativeArray<Color> colors;
+        Vector3[] vertices;
         static MapGenerator mapGenerator;
-        bool terrainJobGuard = true;
+        GenerateTerrainJob terrainJob;
         JobHandle terrainHandle;
+        bool terrainJobGuard = false;
 
         struct GenerateTerrainJob : IJob
         {
-            public Vector2 offset;
             public NativeArray<Vector3> vertices;
             public NativeArray<Color> colors;
+            public Vector2 offset;
+
+            public GenerateTerrainJob(Vector2 offset)
+            {
+                int arrayLength = (size + 1) * (size + 1);
+                vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
+                colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
+                this.offset = offset;
+            }
 
             public void Execute()
             {
@@ -76,8 +84,7 @@ namespace Unity.CitySim.Map
         public float HeightAt(Vector2 position)
         {
             // Ensure vertices exist and can be accessed
-            terrainHandle.Complete();
-            if (vertices == null)
+            if (terrainJobGuard || vertices == null)
                 return 0f;
 
             // Get x, y coordinates among vertices
@@ -152,13 +159,15 @@ namespace Unity.CitySim.Map
             }
         }
 
-        void UpdateMesh()
+        // This function should be called only after GenerateTerrainJob has completed
+        void GenerateTerrainCompleted()
         {
-            mesh.Clear();
-
-            mesh.vertices = vertices.ToArray();
-            mesh.colors = colors.ToArray();
+            vertices = terrainJob.vertices.ToArray();
+            mesh.vertices = vertices;
+            mesh.colors = terrainJob.colors.ToArray();
             mesh.triangles = mapGenerator.triangles;
+
+            GetComponent<MeshFilter>().mesh = mesh;
         }
 
         void Awake()
@@ -175,25 +184,15 @@ namespace Unity.CitySim.Map
             initialFrequency = mapGenerator.initialFrequency;
             lacunarity = mapGenerator.lacunarity;
             offset = mapGenerator.currentChunkOffset;
-
-            // Arrays for all points in terrain (height and color)
-            int arrayLength = (size + 1) * (size + 1);
-            vertices = new NativeArray<Vector3>(arrayLength, Allocator.Persistent);
-            colors = new NativeArray<Color>(arrayLength, Allocator.Persistent);
-
-            // Create the mesh object
             mesh = new Mesh();
-            GetComponent<MeshFilter>().mesh = mesh;
+
+            // Move object to correct location
             transform.Translate(offset.x, 0, offset.y);
 
-            // Set up the terrain generation job
-            var terrainJob = new GenerateTerrainJob();
-            terrainJob.offset = offset;
-            terrainJob.vertices = vertices;
-            terrainJob.colors = colors;
-
-            // Start the terrain generation job
+            // Create the terrain generation job
+            terrainJob = new GenerateTerrainJob(offset);
             terrainHandle = terrainJob.Schedule();
+            terrainJobGuard = true;
         }
 
         void Update()
@@ -202,7 +201,7 @@ namespace Unity.CitySim.Map
             if (terrainJobGuard && terrainHandle.IsCompleted) {
                 terrainJobGuard = false;
                 terrainHandle.Complete();
-                UpdateMesh();
+                GenerateTerrainCompleted();
             }
         }
 
@@ -210,8 +209,8 @@ namespace Unity.CitySim.Map
         {
             // Free up memory
             terrainHandle.Complete();
-            vertices.Dispose();
-            colors.Dispose();
+            terrainJob.vertices.Dispose();
+            terrainJob.colors.Dispose();
         }
     }
 }

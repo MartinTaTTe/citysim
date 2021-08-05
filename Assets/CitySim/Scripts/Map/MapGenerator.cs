@@ -82,7 +82,7 @@ namespace Unity.CitySim.Map
         }
 
         // Get the grid coordinates from a world position
-        public Vector2Int GetGridCoords(float x, float y)
+        public Vector2Int ToGridCoords(float x, float y)
         {
             int xInt, yInt;
 
@@ -96,15 +96,15 @@ namespace Unity.CitySim.Map
 
             return new Vector2Int(xInt, yInt);
         }
-        public Vector2Int GetGridCoords(Vector3 position)
+        public Vector2Int ToGridCoords(Vector3 position)
         {
-            return GetGridCoords(position.x, position.z);
+            return ToGridCoords(position.x, position.z);
         }
 
         // Get the height of the terrain from a world position
         public float HeightAt(float x, float y) {
             // Get the position in grid coordinates
-            Vector2Int gridPos = GetGridCoords(x, y);
+            Vector2Int gridPos = ToGridCoords(x, y);
 
             // Get the chunk where we are
             GameObject terrain = GetChunk(gridPos.x, gridPos.y);
@@ -227,7 +227,6 @@ namespace Unity.CitySim.Map
                     }
                 }
             }
-
         }
     } 
 }
