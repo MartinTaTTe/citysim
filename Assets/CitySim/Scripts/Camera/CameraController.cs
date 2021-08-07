@@ -87,7 +87,7 @@ namespace Unity.CitySim.Camera
             //// LAST STEPS ////
             // Clamp camera to map borders
             Vector3 pos = transform.position;
-            float max = mapGenerator.mapSize;
+            float max = mapGenerator.mapSize - 0.01f;
             pos.x = Mathf.Clamp(pos.x, 0, max);
             pos.z = Mathf.Clamp(pos.z, 0, max);
 

@@ -15,10 +15,10 @@ namespace Unity.CitySim.Map
         
         GameObject cameraTarget;
         MapGenerator mapGenerator;
-        Vector3 mousePosition;
+        public Vector3 mousePosition { get; private set; }
 
         // Get the position of the mouse on the terrain
-        public Vector3 MousePosition()
+        Vector3 MousePosition()
         {
             // Ray from camera to mouse position
             Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);

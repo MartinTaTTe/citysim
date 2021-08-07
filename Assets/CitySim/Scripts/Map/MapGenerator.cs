@@ -104,7 +104,7 @@ namespace Unity.CitySim.Map
         // Get the height of the terrain from a world position
         public float HeightAt(float x, float y) {
             // Ensure position is within map borders
-            if (x < 0 || y < 0 || x > mapSize || y > mapSize)
+            if (x < 0f || y < 0f || x >= mapSize || y >= mapSize)
                 return 0f;
 
             // Get the position in grid coordinates

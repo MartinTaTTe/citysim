@@ -94,46 +94,26 @@ namespace Unity.CitySim.Map
             );
 
             // Index in vertices array
-            vertex.x = Mathf.Clamp(vertex.x, 0, size);
-            vertex.y = Mathf.Clamp(vertex.y, 0, size);
             int i = vertex.x + vertex.y * (size + 1);
 
             // Get local coordinates within quad (0 to 1)
             float x = position.x / quadSize - vertex.x;
             float y = position.y / quadSize - vertex.y;
-            float xi = 1 - x;
-            float yi = 1 - y;
+            float xi = 1f - x;
+            float yi = 1f - y;
 
             // Heights of the 4 vertices where A is 'vertex', like
             // B---C
             // | \ |
             // A---D
             float A = vertices[i].y;
-            float B;
-            float C;
-            float D;
+            float B = vertices[i + size + 1].y;
+            float C = vertices[i + size + 2].y;
+            float D = vertices[i + 1].y;
 
             // Avoid division by 0
             if (x + y == 0)
                 return A;
-
-            // Between A and B
-            if (x == 0) {
-                B = vertices[i + size + 1].y;
-                return Mathf.Lerp(A, B, y);
-            }
-
-            // Between A and D
-            if (y == 0) {
-                D = vertices[i + 1].y;
-                return Mathf.Lerp(A, D, x);
-            }
-
-            B = vertices[i + size + 1].y;
-            C = vertices[i + size + 2].y;
-            D = vertices[i + 1].y;
-
-            // Avoid division by 0
             if (xi + yi == 0)
                 return C;
 
