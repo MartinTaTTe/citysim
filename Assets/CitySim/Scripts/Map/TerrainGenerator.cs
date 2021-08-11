@@ -23,6 +23,7 @@ namespace Unity.CitySim.Map
 
         Mesh mesh;
         Vector3[] vertices;
+        Color[] colors;
         GenerateTerrainJob terrainJob;
         JobHandle terrainHandle;
         bool terrainJobGuard = false;
@@ -51,9 +52,7 @@ namespace Unity.CitySim.Map
                         vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
 
                         // Color
-                        colors[i++] = mapGenerator.gradient.Evaluate(
-                            Mathf.InverseLerp(0, mapGenerator.initialAmplitude, height)
-                        );
+                        colors[i++] = mapGenerator.gradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
                     }
                 }
             }
@@ -86,7 +85,7 @@ namespace Unity.CitySim.Map
         public float HeightAt(float xIn, float yIn)
         {
             // Ensure vertices exist and can be accessed
-            if (terrainJobGuard || vertices == null)
+            if (vertices == null)
                 return 0f;
 
             // Get x, y coordinates among vertices
@@ -145,6 +144,10 @@ namespace Unity.CitySim.Map
         // If x or y is negative, the height change was done in a neighbor chunk (along the edge)
         public void ChangeHeight(float x, float y, float change)
         {
+            // Ensure vertices exist and can be accessed
+            if (vertices == null)
+                return;
+
             // Get the original values of x, y
             float origX = x < 0f ? x + size * quadSize : x;
             float origY = y < 0f ? y + size * quadSize : y;
@@ -225,8 +228,11 @@ namespace Unity.CitySim.Map
             }
 
             // Change the height at gathered indices
-            for (int i = 0; i < indices.Count; i++)
-                vertices[indices[i]].y = Mathf.Max(vertices[indices[i]].y + change, waterLevel);
+            for (int i = 0; i < indices.Count; i++) {
+                float height = Mathf.Max(vertices[indices[i]].y + change, waterLevel);
+                vertices[indices[i]].y = height;
+                colors[indices[i]] = mapGenerator.gradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
+            }
 
             UpdateVertices();
         }
@@ -266,8 +272,9 @@ namespace Unity.CitySim.Map
         void GenerateTerrainCompleted()
         {
             vertices = terrainJob.vertices.ToArray();
+            colors = terrainJob.colors.ToArray();
             mesh.vertices = vertices;
-            mesh.colors = terrainJob.colors.ToArray();
+            mesh.colors = colors;
             mesh.triangles = mapGenerator.triangles;
 
             GetComponent<MeshFilter>().mesh = mesh;
@@ -276,6 +283,7 @@ namespace Unity.CitySim.Map
         void UpdateVertices()
         {
             mesh.vertices = vertices;
+            mesh.colors = colors;
             GetComponent<MeshFilter>().mesh = mesh;
         }
 

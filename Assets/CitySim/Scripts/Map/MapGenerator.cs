@@ -300,10 +300,12 @@ namespace Unity.CitySim.Map
                 DeleteAllChunks();
 
             float mod = 1f;
-            if (Input.GetKey(KeyCode.LeftControl))
+            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
                 mod = -1f;
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                mod *= 10;
             if (Input.GetMouseButton(0))
-                ChangeHeight(mapRenderController.mousePosition, 0.01f * mod);
+                ChangeHeight(mapRenderController.mousePosition, Time.deltaTime * mod);
         }
     }
 }
