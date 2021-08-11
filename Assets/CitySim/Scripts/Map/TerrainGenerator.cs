@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
+using System.Collections.Generic;
 
 namespace Unity.CitySim.Map
 {
@@ -17,10 +18,11 @@ namespace Unity.CitySim.Map
         static float persistance; // Amplitude modifier (Overall height of terrain)
         static float initialFrequency; // Initial frequency for Perlin noise
         static float lacunarity; // Frequency modifier (Density of peaks)
+        static float waterLevel; // Water level in units
+        static MapGenerator mapGenerator;
 
         Mesh mesh;
         Vector3[] vertices;
-        static MapGenerator mapGenerator;
         GenerateTerrainJob terrainJob;
         JobHandle terrainHandle;
         bool terrainJobGuard = false;
@@ -75,13 +77,13 @@ namespace Unity.CitySim.Map
             }
 
             // Limits the lowest point to water level
-            noise = Mathf.Max(noise, mapGenerator.waterLevel * mapGenerator.initialAmplitude - 0.1f);
+            noise = Mathf.Max(noise, waterLevel);
             
             return noise;
         }
 
-        // Get the height of the terrain from a local position
-        public float HeightAt(Vector2 position)
+        // Get the height of the terrain from a local position, prioritize performance!
+        public float HeightAt(float xIn, float yIn)
         {
             // Ensure vertices exist and can be accessed
             if (terrainJobGuard || vertices == null)
@@ -89,16 +91,16 @@ namespace Unity.CitySim.Map
 
             // Get x, y coordinates among vertices
             Vector2Int vertex = new Vector2Int(
-                (int)(position.x / quadSize),
-                (int)(position.y / quadSize)
+                (int)(xIn / quadSize),
+                (int)(yIn / quadSize)
             );
 
             // Index in vertices array
             int i = vertex.x + vertex.y * (size + 1);
 
             // Get local coordinates within quad (0 to 1)
-            float x = position.x / quadSize - vertex.x;
-            float y = position.y / quadSize - vertex.y;
+            float x = xIn / quadSize - vertex.x;
+            float y = yIn / quadSize - vertex.y;
             float xi = 1f - x;
             float yi = 1f - y;
 
@@ -139,6 +141,127 @@ namespace Unity.CitySim.Map
             }
         }
 
+        // Change the height of all surrounding verticies by 'change'
+        // If x or y is negative, the height change was done in a neighbor chunk (along the edge)
+        public void ChangeHeight(float x, float y, float change)
+        {
+            // Get the original values of x, y
+            float origX = x < 0f ? x + size * quadSize : x;
+            float origY = y < 0f ? y + size * quadSize : y;
+            
+            bool lowerLeft = InLowerLeft(origX, origY);
+            int index = ToIndex(origX, origY);
+            List<int> indices = new List<int>();
+
+            // If the height change was made in this chunk
+            if (x >= 0f && y >= 0f) {
+                indices.Add(index + 1);
+                indices.Add(index + size + 1);
+                if (lowerLeft)
+                    indices.Add(index);
+                else
+                    indices.Add(index + size + 2);
+            }
+            // If the height change was made in a corner neighbor
+            else if (x < 0f && y < 0f) {
+                // Right edge
+                if (origX < quadSize) {
+                    // Lower corner
+                    if (origY >= quadSize)
+                        indices.Add(size);
+                    // Upper corner
+                    else if (lowerLeft)
+                        indices.Add(vertices.Length - 1);
+                }
+                // Left edge
+                else {
+                    // Upper corner
+                    if (origY < quadSize)
+                        indices.Add(vertices.Length - size - 1);
+                    // Lower corner
+                    else if (!lowerLeft)
+                        indices.Add(0);
+                }
+            }
+            // If the height change was made in a horizontal neighbor
+            else if (x < 0f) {
+                // Right edge
+                if (origX < quadSize) {
+                    // Upper vertex (always affected)
+                    indices.Add(index + 2 * size + 1);
+                    // Lower vertex
+                    if (lowerLeft)
+                        indices.Add(index + size);
+                }
+                // Left edge
+                else {
+                    // Lower vertex (always affected)
+                    indices.Add(index - size + 1);
+                    // Upper vertex
+                    if (!lowerLeft)
+                        indices.Add(index + 2);
+                }
+            }
+            // If the height change was made in a vertical neighbor
+            else if (y < 0f) {
+                // Upper edge
+                if (origY < quadSize) {
+                    // Right vertex (always affected)
+                    indices.Add(index + size * (size + 1) + 1);
+                    // Left vertex
+                    if (lowerLeft)
+                        indices.Add(index + size * (size + 1));
+                }
+                // Lower edge
+                else {
+                    // Left vertex (always affected)
+                    indices.Add(index % (size + 1));
+                    // Right vertex
+                    if (!lowerLeft)
+                        indices.Add(index % (size + 1) + 1);
+                }
+            } else {
+                Debug.LogError("Unexpected mathematical error in TerrainGenerator/ChangeHeight()");
+            }
+
+            // Change the height at gathered indices
+            for (int i = 0; i < indices.Count; i++)
+                vertices[indices[i]].y = Mathf.Max(vertices[indices[i]].y + change, waterLevel);
+
+            UpdateVertices();
+        }
+
+        // Converts world position to grid coordinates
+        Vector2Int ToGridCoords(float x, float y)
+        {
+            int xInt, yInt;
+
+            // Translate the chunk coordinates to grid coordinates
+            xInt = (int)(x / (quadSize));
+            yInt = (int)(y / (quadSize));
+
+            // Clamp coordinates to be within limits
+            xInt = Mathf.Clamp(xInt, 0, size - 1);
+            yInt = Mathf.Clamp(yInt, 0, size - 1);
+
+            return new Vector2Int(xInt, yInt);
+        }
+
+        // Converts world position to coordinates within quad (0 until 1)
+        bool InLowerLeft(float x, float y)
+        {
+            Vector2Int gridCoords = ToGridCoords(x, y);
+            Vector2 quadCoords = new Vector2(x / quadSize - gridCoords.x, y / quadSize - gridCoords.y);
+            return quadCoords.x + quadCoords.y < 1f;
+        }
+
+        // Converts world position to index of the vertex to the left and below
+        int ToIndex(float x, float y)
+        {
+            Vector2Int gridCoords = ToGridCoords(x, y);
+            return gridCoords.x + gridCoords.y * (size + 1);
+        }
+
         // This function should be called only after GenerateTerrainJob has completed
         void GenerateTerrainCompleted()
         {
@@ -150,12 +273,18 @@ namespace Unity.CitySim.Map
             GetComponent<MeshFilter>().mesh = mesh;
         }
 
+        void UpdateVertices()
+        {
+            mesh.vertices = vertices;
+            GetComponent<MeshFilter>().mesh = mesh;
+        }
+
         void Awake()
         {
             mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
             
             // Get values from map generator
-            size = mapGenerator.chunkSize;
+            size = mapGenerator.quadsPerChunk;
             quadSize = mapGenerator.quadSize;
             perlinOffset = mapGenerator.perlinOffset;
             octaves = mapGenerator.octaves;
@@ -164,6 +293,7 @@ namespace Unity.CitySim.Map
             initialFrequency = mapGenerator.initialFrequency;
             lacunarity = mapGenerator.lacunarity;
             offset = mapGenerator.currentChunkOffset;
+            waterLevel = mapGenerator.waterLevel * initialAmplitude - 0.1f;
             mesh = new Mesh();
 
             // Move object to correct location

@@ -27,8 +27,8 @@ namespace Unity.CitySim.Map
             while (d < rayTraceDistance) {
                 Vector3 point = ray.GetPoint(d);
 
-                // Check if point passes through or near terrain surface, works flawlessly up to 60 degrees sloping
-                if (Mathf.Abs(point.y - mapGenerator.HeightAt(point)) < rayTraceInterval) {
+                // Check if point is below terrain surface
+                if (point.y - mapGenerator.HeightAt(point) <= 0f) {
                     point.y = mapGenerator.HeightAt(point);
                     return point;
                 }
@@ -37,7 +37,7 @@ namespace Unity.CitySim.Map
             }
 
             // No intersection between ray and terrain
-            return new Vector3();
+            return new Vector3(-1f, -1f, -1f);
         }
 
         void ToggleTerrainActivity()

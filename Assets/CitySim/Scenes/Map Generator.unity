@@ -341,7 +341,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0885278add0386c47a3c4a5450380041, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chunkSize: 250
+  quadsPerChunk: 250
   quadSize: 2
   maxGridSize: 20
   perlinOffset: {x: 9.7, y: 0}
@@ -360,6 +360,7 @@ MonoBehaviour:
   - {r: 0.07058824, g: 0.12941177, b: 0.15294118, a: 0}
   TerrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
   mapSize: 10000
+  chunkSize: 500
 --- !u!114 &288710085
 MonoBehaviour:
   m_ObjectHideFlags: 0
