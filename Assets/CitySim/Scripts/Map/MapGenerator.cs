@@ -132,7 +132,7 @@ namespace Unity.CitySim.Map
         }
 
         // Change the height of all surrounding verticies by 'change'
-        void ChangeHeight(float x, float y, float change)
+        void ChangeHeight(float x, float y, float change, bool level)
         {
             // Ensure position is within map borders
             if (x < 0f || y < 0f || x >= mapSize || y >= mapSize)
@@ -152,7 +152,14 @@ namespace Unity.CitySim.Map
             float xOff = x - (gridPos.x * chunkSize);
             float yOff = y - (gridPos.y * chunkSize);
             
-            terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff, yOff, change);
+            float height = terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff, yOff, change, level);
+
+            // Ensure height change was successful
+            if (height == -1f)
+                return;
+
+            // Use the return value if we are leveling the terrain
+            height = level ? height : change;
             
             // Get the offsets of affected neighbors
             Vector2Int neighborOffset = new Vector2Int(0, 0);
@@ -171,24 +178,24 @@ namespace Unity.CitySim.Map
             if (neighborOffset.x != 0) {
                 terrain = GetChunk(gridPos.x + neighborOffset.x, gridPos.y);
                 if (terrain)
-                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff - chunkSize, yOff, change);
+                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff - chunkSize, yOff, height, level);
             }
             if (neighborOffset.y != 0) {
                 terrain = GetChunk(gridPos.x, gridPos.y + neighborOffset.y);
                 if (terrain)
-                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff, yOff - chunkSize, change);
+                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff, yOff - chunkSize, height, level);
             }
             if (neighborOffset.x != 0 && neighborOffset.y != 0) {
                 terrain = GetChunk(gridPos.x + neighborOffset.x, gridPos.y + neighborOffset.y);
                 if (terrain)
-                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff - chunkSize, yOff - chunkSize, change);
+                    terrain.GetComponent<TerrainGenerator>().ChangeHeight(xOff - chunkSize, yOff - chunkSize, height, level);
             }
         }
 
-        void ChangeHeight(Vector3 position, float change)
+        void ChangeHeight(Vector3 position, float change, bool level)
         {
             if (mapRenderController.mousePosition.y != -1)
-                ChangeHeight(position.x, position.z, change);
+                ChangeHeight(position.x, position.z, change, level);
         }
 
         // Delete all chunks in order to regenerate them
@@ -300,12 +307,12 @@ namespace Unity.CitySim.Map
                 DeleteAllChunks();
 
             float mod = 1f;
-            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            if (Input.GetKey(KeyCode.LeftControl))
                 mod = -1f;
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                 mod *= 10;
             if (Input.GetMouseButton(0))
-                ChangeHeight(mapRenderController.mousePosition, Time.deltaTime * mod);
+                ChangeHeight(mapRenderController.mousePosition, Time.deltaTime * mod, Input.GetKey(KeyCode.RightControl));
         }
     }
 }

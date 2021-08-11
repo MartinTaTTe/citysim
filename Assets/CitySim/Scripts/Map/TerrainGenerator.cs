@@ -142,11 +142,11 @@ namespace Unity.CitySim.Map
 
         // Change the height of all surrounding verticies by 'change'
         // If x or y is negative, the height change was done in a neighbor chunk (along the edge)
-        public void ChangeHeight(float x, float y, float change)
+        public float ChangeHeight(float x, float y, float change, bool level)
         {
             // Ensure vertices exist and can be accessed
             if (vertices == null)
-                return;
+                return -1f;
 
             // Get the original values of x, y
             float origX = x < 0f ? x + size * quadSize : x;
@@ -227,14 +227,26 @@ namespace Unity.CitySim.Map
                 Debug.LogError("Unexpected mathematical error in TerrainGenerator/ChangeHeight()");
             }
 
+            // Calculate average height if needed
+            float averageHeight = 0f;
+            if (level && indices.Count == 3) {
+                for (int i = 0; i < 3; i++)
+                    averageHeight += vertices[indices[i]].y;
+                averageHeight /= 3f;
+            } else if (level)
+                averageHeight = change;
+
             // Change the height at gathered indices
             for (int i = 0; i < indices.Count; i++) {
-                float height = Mathf.Max(vertices[indices[i]].y + change, waterLevel);
+                float height = level ? averageHeight : vertices[indices[i]].y + change;
+                height = Mathf.Max(height, waterLevel);
                 vertices[indices[i]].y = height;
                 colors[indices[i]] = mapGenerator.gradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
             }
 
             UpdateVertices();
+
+            return averageHeight;
         }
 
         // Converts world position to grid coordinates
