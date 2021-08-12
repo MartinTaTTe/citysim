@@ -180,6 +180,30 @@ namespace Unity.CitySim.Map
             }
         }
 
+        // Get the position of the 3 vertices that make up the triangle
+        public Vector3[] TriangleCorners(float x, float y)
+        {
+            // Ensure vertices exist and can be accessed
+            if (vertices == null)
+                return null;
+
+            int i = ToIndex(x, y);
+            Vector3 off = new Vector3(offset.x, 0f, offset.y);
+
+            if (InLowerLeft(x, y))
+                return new Vector3[] {
+                    vertices[i] + off,
+                    vertices[i + size + 1] + off,
+                    vertices[i + 1] + off
+                };
+            else
+                return new Vector3[] {
+                    vertices[i + size + 1] + off,
+                    vertices[i + size + 2] + off,
+                    vertices[i + 1] + off
+                };
+        }
+
         // Change the height of all surrounding verticies by 'change'
         // If x or y is negative, the height change was done in a neighbor chunk (along the edge)
         public float ChangeHeight(float x, float y, float change, bool level)
@@ -285,7 +309,7 @@ namespace Unity.CitySim.Map
                 colors[i] = GenerateColor(i % (size + 1), i / (size + 1), i, ref vertices);
             }
 
-            UpdateVertices();
+            UpdateMesh();
 
             return averageHeight;
         }
@@ -333,11 +357,10 @@ namespace Unity.CitySim.Map
             GetComponent<MeshFilter>().mesh = mesh;
         }
 
-        void UpdateVertices()
+        void UpdateMesh()
         {
             mesh.vertices = vertices;
             mesh.colors = colors;
-            GetComponent<MeshFilter>().mesh = mesh;
         }
 
         void Awake()

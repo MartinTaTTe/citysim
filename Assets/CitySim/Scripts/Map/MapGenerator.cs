@@ -55,7 +55,7 @@ namespace Unity.CitySim.Map
         public Color[] flora;
         public Gradient soilGradient { get; private set; }
         public Gradient floraGradient { get; private set; }
-        public GameObject TerrainType;
+        public GameObject terrainType;
         public float mapSize;
         public float chunkSize;
         public int[] triangles { get; private set; }
@@ -142,6 +142,35 @@ namespace Unity.CitySim.Map
         public float HeightAt(Vector3 position)
         {
             return HeightAt(position.x, position.z);
+        }
+
+        // Get the position of the 3 vertices that make up the triangle
+        public Vector3[] TriangleCorners(float x, float y)
+        {
+            // Ensure position is within map borders
+            if (x < 0f || y < 0f || x >= mapSize || y >= mapSize)
+                return null;
+
+            // Get the position in grid coordinates
+            Vector2Int gridPos = ToGridCoords(x, y);
+
+            // Get the chunk where we are
+            GameObject terrain = GetChunk(gridPos.x, gridPos.y);
+
+            // If height requested in undefined chunk
+            if (terrain == null)
+                return null;
+                
+            // Get the offset within the chunk
+            float xOff = x - (gridPos.x * chunkSize);
+            float yOff = y - (gridPos.y * chunkSize);
+
+            return terrain.GetComponent<TerrainGenerator>().TriangleCorners(xOff, yOff);
+        }
+
+        public Vector3[] TriangleCorners(Vector3 position)
+        {
+            return TriangleCorners(position.x, position.z);
         }
 
         // Change the height of all surrounding verticies by 'change'
@@ -290,7 +319,7 @@ namespace Unity.CitySim.Map
             currentChunkOffset = new Vector2(x * chunkSize, y * chunkSize);
 
             // Copy the Terrain Type
-            terrainChunks[x,y] = Instantiate(TerrainType, this.transform.position, this.transform.rotation, this.transform);
+            terrainChunks[x,y] = Instantiate(terrainType, this.transform.position, this.transform.rotation, this.transform);
             
             return terrainChunks[x, y];
         }
