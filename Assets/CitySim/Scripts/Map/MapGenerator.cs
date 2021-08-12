@@ -33,15 +33,28 @@ namespace Unity.CitySim.Map
         [Range(0.1f, 10f)]
         public float lacunarity = 2f;
 
+        [Range(1, 10)]
+        public int highlandExtremity = 3;
+
+        [Range(0f, 0.5f)]
+        public float lowlandThreshold = 0.2f;
+
         [Header("")]
-        [Range(0f, 1f)]
-        public float waterLevel = 0.4f;
+        [Range(0f, 0.3f)]
+        public float waterLevel = 0.1f;
         public Color water;
 
         [Range(0f, 0.2f)]
-        public float landStep = 0.1f;
-        public Color[] land;
-        public Gradient gradient { get; private set; }
+        public float zoneStep = 0.1f;
+        [Range(0f, 0.01f)]
+        public float beachZone = 0.05f;
+
+        [Range(1f, 10f)]
+        public float floraExtremity = 3f;
+        public Color[] soil;
+        public Color[] flora;
+        public Gradient soilGradient { get; private set; }
+        public Gradient floraGradient { get; private set; }
         public GameObject TerrainType;
         public float mapSize;
         public float chunkSize;
@@ -233,19 +246,29 @@ namespace Unity.CitySim.Map
             return triangles;
         }
 
-        // Create the gradient
-        Gradient CreateGradient()
+        // Create gradient based on the colors array
+        Gradient CreateGradient(Color[] colors, bool beach)
         {
             Gradient gradient = new Gradient();
 
             // Add colors to colorKey
-            colorKey = new GradientColorKey[land.Length + 1];
-            colorKey[0].color = water;
-            colorKey[0].time = waterLevel;
+            colorKey = new GradientColorKey[colors.Length + 1];
 
-            for (int i = 0; i < land.Length; i++) {
-                colorKey[i + 1].color = land[i];
-                colorKey[i + 1].time = waterLevel + i * landStep;
+            // If the gradient should have a dedicated beach zone
+            if (beach) {
+                colorKey[0].color = colors[0];
+                colorKey[0].time = waterLevel + beachZone;
+                for (int i = 1; i < colors.Length; i++) {
+                    colorKey[i].color = colors[i];
+                    colorKey[i].time = waterLevel + beachZone + (i - 1) * zoneStep;
+                }
+            } else {
+                colorKey[0].color = water;
+                colorKey[0].time = waterLevel;
+                for (int i = 0; i < colors.Length; i++) {
+                    colorKey[i + 1].color = colors[i];
+                    colorKey[i + 1].time = waterLevel + i * zoneStep;
+                }
             }
 
             // Add alphas to alphaKey
@@ -283,7 +306,8 @@ namespace Unity.CitySim.Map
         {
             SetSizes();
             terrainChunks = new GameObject[maxGridSize, maxGridSize];
-            gradient = CreateGradient();
+            soilGradient = CreateGradient(soil, false);
+            floraGradient = CreateGradient(flora, true);
             triangles = CreateTriangles();
             mapRenderController = GetComponent<MapRenderController>();
         }
@@ -293,9 +317,11 @@ namespace Unity.CitySim.Map
             // Max Grid Size
             maxGridSize = maxGridSize / 2 * 2;
 
-            // Disallow more than 7 colors for land
-            if (land.Length > 7)
-                System.Array.Resize(ref land, 7);
+            // Disallow more than 7 colors for soil and flora
+            if (soil.Length > 7)
+                System.Array.Resize(ref soil, 7);
+            if (flora.Length > 7)
+                System.Array.Resize(ref flora, 7);
 
             SetSizes();
         }

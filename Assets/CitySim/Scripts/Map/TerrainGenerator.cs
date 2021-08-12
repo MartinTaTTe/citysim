@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Jobs;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Unity.CitySim.Map
 {
@@ -44,17 +45,16 @@ namespace Unity.CitySim.Map
 
             public void Execute()
             {
-                // Loop through all points in terrain and generate a height and color for each point
-                for (int i = 0, y = 0; y <= size; y++) {
-                    for (int x = 0; x <= size; x++) {
-                        // Height
-                        float height = GenerateHeight(offset, x, y);
-                        vertices[i] = new Vector3(quadSize * x, height, quadSize * y);
+                // Loop through all points in terrain and generate a height for each point
+                for (int i = 0, y = 0; y <= size; y++)
+                    for (int x = 0; x <= size; x++)
+                        vertices[i++] = new Vector3(quadSize * x, GenerateHeight(offset, x, y), quadSize * y);
 
-                        // Color
-                        colors[i++] = mapGenerator.gradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
-                    }
-                }
+                Vector3[] verticesArr = vertices.ToArray();
+                // Loop through all points in terrain and generate a color for each point
+                for (int i = 0, y = 0; y <= size; y++)
+                    for (int x = 0; x <= size; x++)
+                        colors[i] = GenerateColor(x, y, i++, ref verticesArr);
             }
         }
 
@@ -75,10 +75,50 @@ namespace Unity.CitySim.Map
                 frequency *= lacunarity;
             }
 
-            // Limits the lowest point to water level
+            // Make highlands hillier and lowlands flatter
+            float relative = noise / initialAmplitude + mapGenerator.lowlandThreshold;
+            relative = Mathf.Pow(relative, mapGenerator.highlandExtremity);
+            noise = initialAmplitude * relative;
+
+            // Limit the lowest point to water level
             noise = Mathf.Max(noise, waterLevel);
             
             return noise;
+        }
+
+        // Generate color based on neighboring vertices
+        static Color GenerateColor(int x, int y, int i, ref Vector3[] vertices)
+        {
+            float height = vertices[i].y;
+            Color soilColor = mapGenerator.soilGradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
+
+            // Don't add flora to water
+            if (height == waterLevel)
+                return soilColor;
+
+            Color floraColor = mapGenerator.floraGradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
+
+            List<float> heights = new List<float>();
+            heights.Add(height);
+
+            // Not left edge
+            if (x != 0)
+                heights.Add(vertices[i - 1].y);
+            // Not right edge
+            if (x != size)
+                heights.Add(vertices[i + 1].y);
+            // Not lower edge
+            if (y != 0)
+                heights.Add(vertices[i - size - 1].y);
+            // Not upper edge
+            if (y != size)
+                heights.Add(vertices[i + size + 1].y);
+
+            // Calculate gradient
+            float gradient = heights.Max() - heights.Min();
+            gradient = Mathf.Min(gradient, mapGenerator.floraExtremity);
+            
+            return Color.Lerp(floraColor, soilColor, gradient / mapGenerator.floraExtremity);
         }
 
         // Get the height of the terrain from a local position, prioritize performance!
@@ -236,12 +276,13 @@ namespace Unity.CitySim.Map
             } else if (level)
                 averageHeight = change;
 
-            // Change the height at gathered indices
-            for (int i = 0; i < indices.Count; i++) {
-                float height = level ? averageHeight : vertices[indices[i]].y + change;
+            // Change the height and color at gathered indices
+            for (int j = 0; j < indices.Count; j++) {
+                int i = indices[j];
+                float height = level ? averageHeight : vertices[i].y + change;
                 height = Mathf.Max(height, waterLevel);
-                vertices[indices[i]].y = height;
-                colors[indices[i]] = mapGenerator.gradient.Evaluate(Mathf.InverseLerp(0, initialAmplitude, height));
+                vertices[i].y = height;
+                colors[i] = GenerateColor(i % (size + 1), i / (size + 1), i, ref vertices);
             }
 
             UpdateVertices();
