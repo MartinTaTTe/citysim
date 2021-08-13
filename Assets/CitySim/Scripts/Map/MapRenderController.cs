@@ -4,8 +4,8 @@ namespace Unity.CitySim.Map
 {
     public class MapRenderController : MonoBehaviour
     {
-        [Range(10, 10000)]
-        public int renderRange = 5000;
+        [Range(10, 2000)]
+        public int minRenderRange = 1000;
 
         [Range(10, 2000)]
         public int rayTraceDistance = 1000;
@@ -15,7 +15,7 @@ namespace Unity.CitySim.Map
 
         public GameObject highlight;
         
-        GameObject cameraTarget;
+        GameObject mainCamera;
         MapGenerator mapGenerator;
         public Vector3 mousePosition { get; private set; }
         Mesh mesh;
@@ -45,7 +45,11 @@ namespace Unity.CitySim.Map
 
         void ToggleTerrainActivity()
         {
-            Vector2 position = new Vector2(cameraTarget.transform.position.x, cameraTarget.transform.position.z);
+            Vector2 position = new Vector2(mainCamera.transform.position.x, mainCamera.transform.position.z);
+
+            // Calculate render range
+            float cameraHeight = mainCamera.transform.position.y + mapGenerator.HeightAt(mainCamera.transform.position);
+            float renderRange = Mathf.Max(minRenderRange, cameraHeight);
 
             // Get the start coordinates
             Vector2Int from = mapGenerator.ToGridCoords(position.x - renderRange, position.y - renderRange);
@@ -74,7 +78,7 @@ namespace Unity.CitySim.Map
 
         void Awake()
         {
-            cameraTarget = GameObject.FindGameObjectWithTag("Player");
+            mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             mapGenerator = GetComponent<MapGenerator>();
 
             // Create the highlighted area mesh

@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e700f70981add843a9038dbbe0f08d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  renderRange: 2000
+  minRenderRange: 1000
   rayTraceDistance: 500
   rayTraceInterval: 0.05
   highlight: {fileID: 8857858428445847908, guid: 73e45def42e73cb46867d780124c9750, type: 3}

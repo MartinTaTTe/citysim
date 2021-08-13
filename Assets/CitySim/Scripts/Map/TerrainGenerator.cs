@@ -377,7 +377,7 @@ namespace Unity.CitySim.Map
             initialFrequency = mapGenerator.initialFrequency;
             lacunarity = mapGenerator.lacunarity;
             offset = mapGenerator.currentChunkOffset;
-            waterLevel = mapGenerator.waterLevel * initialAmplitude - 0.1f;
+            waterLevel = mapGenerator.waterLevel * initialAmplitude - 0.001f;
             mesh = new Mesh();
 
             // Move object to correct location
