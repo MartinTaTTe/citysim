@@ -611,6 +611,18 @@ PrefabInstance:
       propertyPath: zoomSpeed
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: minZoomStep
+      value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: verticalExponent
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: elevationDistance
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6846672632091746173, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: m_Name
       value: Main Camera
