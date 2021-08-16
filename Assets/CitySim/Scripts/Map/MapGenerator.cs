@@ -174,7 +174,7 @@ namespace Unity.CitySim.Map
         }
 
         // Change the height of all surrounding verticies by 'change'
-        void ChangeHeight(float x, float y, float change, bool level)
+        public void ChangeHeight(float x, float y, float change, bool level = false)
         {
             // Ensure position is within map borders
             if (x < 0f || y < 0f || x >= mapSize || y >= mapSize)
@@ -234,7 +234,7 @@ namespace Unity.CitySim.Map
             }
         }
 
-        void ChangeHeight(Vector3 position, float change, bool level)
+        public void ChangeHeight(Vector3 position, float change, bool level = false)
         {
             if (mapRenderController.mousePosition.y != -1)
                 ChangeHeight(position.x, position.z, change, level);
@@ -319,7 +319,7 @@ namespace Unity.CitySim.Map
             currentChunkOffset = new Vector2(x * chunkSize, y * chunkSize);
 
             // Copy the Terrain Type
-            terrainChunks[x,y] = Instantiate(terrainType, this.transform.position, this.transform.rotation, this.transform);
+            terrainChunks[x,y] = Instantiate(terrainType, transform.position, transform.rotation, transform);
             
             return terrainChunks[x, y];
         }
@@ -360,14 +360,6 @@ namespace Unity.CitySim.Map
             // Delete all chunks if space is pressed
             if (Input.GetKey(KeyCode.Space))
                 DeleteAllChunks();
-
-            float mod = 1f;
-            if (Input.GetKey(KeyCode.LeftControl))
-                mod = -1f;
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                mod *= 10;
-            if (Input.GetMouseButton(0))
-                ChangeHeight(mapRenderController.mousePosition, Time.deltaTime * mod, Input.GetKey(KeyCode.RightControl));
         }
     }
 }

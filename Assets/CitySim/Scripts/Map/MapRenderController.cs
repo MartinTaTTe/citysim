@@ -13,12 +13,9 @@ namespace Unity.CitySim.Map
         [Range(0f, 1f)]
         public float rayTraceInterval = 1f;
 
-        public GameObject highlight;
-        
         GameObject mainCamera;
         MapGenerator mapGenerator;
         public Vector3 mousePosition { get; private set; }
-        Mesh mesh;
 
         // Get the position of the mouse on the terrain
         Vector3 MousePosition()
@@ -80,15 +77,6 @@ namespace Unity.CitySim.Map
         {
             mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             mapGenerator = GetComponent<MapGenerator>();
-
-            // Create the highlighted area mesh
-            mesh = new Mesh();
-            mesh.vertices = new Vector3[3];
-            mesh.triangles = new int[]{0, 1, 2};
-
-            // Create the highlighted area game object
-            highlight = Instantiate(highlight, this.transform.position, this.transform.rotation, this.transform);
-            highlight.GetComponent<MeshFilter>().mesh = mesh;
         }
 
         void Start()
@@ -101,15 +89,6 @@ namespace Unity.CitySim.Map
             ToggleTerrainActivity();
 
             mousePosition = MousePosition();
-
-            // Update the highlighted area
-            if (mousePosition.y != -1f) {
-                Vector3[] vertices = mapGenerator.TriangleCorners(mousePosition);
-                if (vertices != null) {
-                    mesh.vertices = vertices;
-                    mesh.RecalculateBounds();
-                }
-            }
         }
 
         void OnDrawGizmos()
