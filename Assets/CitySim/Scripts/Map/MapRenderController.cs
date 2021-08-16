@@ -13,8 +13,8 @@ namespace Unity.CitySim.Map
         [Range(0f, 1f)]
         public float rayTraceInterval = 1f;
 
-        GameObject mainCamera;
-        MapGenerator mapGenerator;
+        public Transform mainCameraTransform;
+        public MapGenerator mapGenerator;
         public Vector3 mousePosition { get; private set; }
 
         // Get the position of the mouse on the terrain
@@ -42,10 +42,10 @@ namespace Unity.CitySim.Map
 
         void ToggleTerrainActivity()
         {
-            Vector2 position = new Vector2(mainCamera.transform.position.x, mainCamera.transform.position.z);
+            Vector2 position = new Vector2(mainCameraTransform.position.x, mainCameraTransform.position.z);
 
             // Calculate render range
-            float cameraHeight = mainCamera.transform.position.y + mapGenerator.HeightAt(mainCamera.transform.position);
+            float cameraHeight = mainCameraTransform.position.y + mapGenerator.HeightAt(mainCameraTransform.position);
             float renderRange = Mathf.Max(minRenderRange, cameraHeight);
 
             // Get the start coordinates
@@ -71,12 +71,6 @@ namespace Unity.CitySim.Map
         bool InRange(int value, int min, int max)
         {
             return value >= min && value <= max;
-        }
-
-        void Awake()
-        {
-            mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-            mapGenerator = GetComponent<MapGenerator>();
         }
 
         void Start()

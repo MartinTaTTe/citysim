@@ -56,6 +56,7 @@ namespace Unity.CitySim.Map
         public Gradient soilGradient { get; private set; }
         public Gradient floraGradient { get; private set; }
         public GameObject terrainType;
+        public MapRenderController mapRenderController;
         public float mapSize;
         public float chunkSize;
         public int[] triangles { get; private set; }
@@ -64,7 +65,6 @@ namespace Unity.CitySim.Map
         GameObject[,] terrainChunks;
         GradientColorKey[] colorKey;
         GradientAlphaKey[] alphaKey;
-        MapRenderController mapRenderController;
 
         // Returns the terrain chunk at x, y and generates it if necessary
         public GameObject GetChunk(int x, int y)
@@ -338,7 +338,6 @@ namespace Unity.CitySim.Map
             soilGradient = CreateGradient(soil, false);
             floraGradient = CreateGradient(flora, true);
             triangles = CreateTriangles();
-            mapRenderController = GetComponent<MapRenderController>();
         }
 
         void OnValidate()

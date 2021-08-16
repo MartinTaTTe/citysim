@@ -26,17 +26,11 @@ namespace Unity.CitySim.Camera
         float horizontalOffset;
         float targetHorizontalOffset;
         float verticalOffset;
-        GameObject cameraTarget;
-        MapGenerator mapGenerator;
+        public Transform cameraTargetTransform;
+        public MapGenerator mapGenerator;
 
         void Awake()
         {
-            cameraTarget = GameObject.FindGameObjectWithTag("Player");
-            mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
-
-            if (!cameraTarget)
-                throw new System.Exception("Player not found!");
-
             horizontalOffset = startHorizontalOffset;
             targetHorizontalOffset = horizontalOffset;
             verticalOffset = horizontalOffset * Mathf.Pow(horizontalOffset / elevationDistance, verticalExponent);
@@ -67,17 +61,17 @@ namespace Unity.CitySim.Camera
 
             //// OFFSET ////
             // Get the position of the target and correct the camera height
-            Vector3 position = cameraTarget.transform.position;
+            Vector3 position = cameraTargetTransform.position;
             position.y += verticalOffset;
 
             // Set camera to that position and match rotation with target
-            transform.SetPositionAndRotation(position, cameraTarget.transform.rotation);
+            transform.SetPositionAndRotation(position, cameraTargetTransform.rotation);
 
             // Move camera backwards to be behind the target
             transform.Translate(Vector3.back * horizontalOffset);
 
             // Point camera towards target
-            transform.LookAt(cameraTarget.transform);
+            transform.LookAt(cameraTargetTransform);
 
 
             //// LAST STEPS ////

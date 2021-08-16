@@ -24,20 +24,9 @@ namespace Unity.CitySim.Camera
         public int spawnHeight = 100;
         
         float rotationSpeed = 0f;
-        bool onGround;
-        GameObject mainCamera;
-        MapGenerator mapGenerator;
-
-        void Awake()
-        {
-            mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-            mapGenerator = GameObject.FindGameObjectWithTag("Map").GetComponent<MapGenerator>();
-
-            if (!mainCamera)
-                throw new System.Exception("Camera not found!");
-
-            onGround = false;
-        }
+        bool onGround = false;
+        public Transform mainCameraTransform;
+        public MapGenerator mapGenerator;
 
         void Start()
         {
@@ -113,7 +102,7 @@ namespace Unity.CitySim.Camera
                 rotation = movement / Screen.width * UnityEngine.Camera.main.fieldOfView * 2;
 
                 // Rotate around the global y-axis passing through the camera
-                transform.RotateAround(mainCamera.transform.position, Vector3.up, rotation);
+                transform.RotateAround(mainCameraTransform.position, Vector3.up, rotation);
             }
 
             
