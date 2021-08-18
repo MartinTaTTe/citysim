@@ -66,7 +66,7 @@ namespace Unity.CitySim.UI
             pointerOnGUI = UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
             
             // Update the highlighted area
-            if (highlightTriangle.activeSelf && mapRenderController.mousePosition.y != -1f) {
+            if (highlightTriangle.activeInHierarchy && mapRenderController.mousePosition.y != -1f) {
                 Vector3[] vertices = mapGenerator.TriangleCorners(mapRenderController.mousePosition);
                 if (vertices != null) {
                     highlightTriangleMesh.vertices = vertices;

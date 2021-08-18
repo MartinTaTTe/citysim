@@ -9,13 +9,13 @@ namespace Unity.CitySim.UI
         void Update()
         {
             // Get the camera's rotation
-            Quaternion rotation = cameraTarget.transform.rotation;
+            Vector3 rotation = cameraTarget.transform.eulerAngles;
 
             // Move the rotatin to the correct axis
             rotation.z = rotation.y;
             rotation.y = 0f;
 
-            transform.SetPositionAndRotation(transform.position, rotation);
+            transform.eulerAngles = rotation;
         }
     }
 }
