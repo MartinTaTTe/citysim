@@ -225,6 +225,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6846672632091746173, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
   m_PrefabInstance: {fileID: 6846672632051698804}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &157539738 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+  m_PrefabInstance: {fileID: 6846672632051698804}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 157539737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f92f5dc2615a6e47bdfa14a27f83a9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &157539741 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6846672632091746168, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
@@ -1094,6 +1105,7 @@ MonoBehaviour:
   mapGenerator: {fileID: 288710084}
   mapRenderController: {fileID: 288710085}
   gUIController: {fileID: 653716070}
+  cameraController: {fileID: 157539738}
 --- !u!114 &653716070
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2096,6 +2108,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 288710084}
     - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: zoomSensitivity
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: verticalExponent
       value: 2
       objectReference: {fileID: 0}
@@ -2104,9 +2120,17 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: maxVerticalOffset
+      value: 6000
+      objectReference: {fileID: 0}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: cameraTargetTransform
       value: 
       objectReference: {fileID: 365254104}
+    - target: {fileID: 6846672632091746170, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
+      propertyPath: startHorizontalOffset
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 6846672632091746173, guid: 12223d82f9a5f494e87afb9a0867accc, type: 3}
       propertyPath: m_Name
       value: Main Camera

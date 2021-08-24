@@ -241,7 +241,7 @@ namespace Unity.CitySim.Map
         }
 
         // Delete all chunks in order to regenerate them
-        void DeleteAllChunks()
+        public void DeleteAllChunks()
         {
             for (int x = 0; x < maxGridSize; x++) {
                 for (int y = 0; y < maxGridSize; y++) {
@@ -352,13 +352,6 @@ namespace Unity.CitySim.Map
                 System.Array.Resize(ref flora, 7);
 
             SetSizes();
-        }
-
-        void Update()
-        {
-            // Delete all chunks if space is pressed
-            if (Input.GetKey(KeyCode.Space))
-                DeleteAllChunks();
         }
     }
 }

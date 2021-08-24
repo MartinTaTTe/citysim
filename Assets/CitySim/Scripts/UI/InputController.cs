@@ -1,5 +1,6 @@
 using UnityEngine;
 using Unity.CitySim.Map;
+using Unity.CitySim.Camera;
 
 namespace Unity.CitySim.UI
 {
@@ -16,6 +17,7 @@ namespace Unity.CitySim.UI
         public MapGenerator mapGenerator;
         public MapRenderController mapRenderController;
         public GUIController gUIController;
+        public CameraController cameraController;
         
         // Reacts to a mouse click
         void OnMouseClick(Vector3 position, int shiftModifier, int ctrlModifier)
@@ -43,6 +45,15 @@ namespace Unity.CitySim.UI
                     OnMouseClick(mousePosition, currentShiftModifier, currentCtrlModifier);
                 }
             }
+
+            // If the scrollwheel is scrolled
+            if (Input.mouseScrollDelta.y != 0f)
+                cameraController.ZoomBy(Input.mouseScrollDelta.y);
+
+            //// KEYBOARD EVENTS ////
+            // If space is pressed
+            if (Input.GetKey(KeyCode.Space))
+                mapGenerator.DeleteAllChunks();
         }
 
         void OnValidate()
