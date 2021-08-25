@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/CitySim/Scenes/Map Generator.unity
+    guid: 3157ad717c8701745954031fe2de4906
   m_configObjects: {}
