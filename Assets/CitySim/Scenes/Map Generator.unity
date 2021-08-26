@@ -888,7 +888,7 @@ MonoBehaviour:
   - {r: 1, g: 1, b: 1, a: 0}
   - {r: 1, g: 1, b: 1, a: 0}
   terrainType: {fileID: 7390773993836462068, guid: 5ce8edba66731d24ca7a84cacb1c9c69, type: 3}
-  mapRenderController: {fileID: 288710085}
+  inputController: {fileID: 653716069}
   mapSize: 10000
   chunkSize: 500
 --- !u!114 &288710085
@@ -904,8 +904,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minRenderRange: 1000
-  rayTraceDistance: 500
-  rayTraceInterval: 0.05
   mainCameraTransform: {fileID: 157539741}
   mapGenerator: {fileID: 288710084}
 --- !u!1 &360929493
@@ -1102,6 +1100,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shiftModifier: 10
   ctrlModifier: -1
+  rayTraceDistance: 500
+  rayTraceInterval: 0.1
   mapGenerator: {fileID: 288710084}
   mapRenderController: {fileID: 288710085}
   gUIController: {fileID: 653716070}
@@ -1125,7 +1125,6 @@ MonoBehaviour:
   toggleLevelHeight: {fileID: 148840631}
   toggleHeightEditorTools: {fileID: 193037724}
   mapGenerator: {fileID: 288710084}
-  mapRenderController: {fileID: 288710085}
   highlightTriangle: {fileID: 8857858428445847908, guid: 73e45def42e73cb46867d780124c9750, type: 3}
 --- !u!114 &653716071
 MonoBehaviour:

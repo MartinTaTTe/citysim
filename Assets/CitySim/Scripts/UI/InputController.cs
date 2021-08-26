@@ -11,13 +11,21 @@ namespace Unity.CitySim.UI
 
         [Range(-1, 1)]
         public int ctrlModifier = 10;
-        int currentShiftModifier;
-        int currentCtrlModifier;
 
+        [Range(10, 2000)]
+        public int rayTraceDistance = 1000;
+
+        [Range(0f, 1f)]
+        public float rayTraceInterval = 1f;
+
+        public Vector3 mousePosition { get; private set; }
         public MapGenerator mapGenerator;
         public MapRenderController mapRenderController;
         public GUIController gUIController;
         public CameraController cameraController;
+        
+        int currentShiftModifier;
+        int currentCtrlModifier;
         
         // Reacts to a mouse click
         void OnMouseClick(Vector3 position, int shiftModifier, int ctrlModifier)
@@ -27,6 +35,29 @@ namespace Unity.CitySim.UI
             else if (gUIController.toggleLevelHeight.isOn)
                 mapGenerator.ChangeHeight(position, 0f, true);
         }
+
+        // Get the position of the mouse on the terrain
+        Vector3 MousePosition()
+        {
+            // Ray from camera to mouse position
+            Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            float d = 0f;
+            while (d < rayTraceDistance) {
+                Vector3 point = ray.GetPoint(d);
+
+                // Check if point is below terrain surface
+                if (point.y - mapGenerator.HeightAt(point) <= 0f) {
+                    point.y = mapGenerator.HeightAt(point);
+                    return point;
+                }
+
+                d += rayTraceInterval;
+            }
+
+            // No intersection between ray and terrain
+            return new Vector3(-1f, -1f, -1f);
+        }
         
         void Update()
         {
@@ -34,9 +65,8 @@ namespace Unity.CitySim.UI
             currentShiftModifier = Input.GetKey(KeyCode.LeftShift) ? shiftModifier : 1;
             currentCtrlModifier = Input.GetKey(KeyCode.LeftControl) ? ctrlModifier : 1;
 
-
             //// MOUSE EVENTS ////
-            Vector3 mousePosition = mapRenderController.mousePosition;
+            mousePosition = MousePosition();
 
             // If the pointer is on the terrain
             if (!gUIController.pointerOnGUI && mousePosition.y != -1f) {
@@ -60,6 +90,11 @@ namespace Unity.CitySim.UI
         {
             shiftModifier = shiftModifier < 50 ? 10 : 100;
             ctrlModifier = ctrlModifier < 1 ? -1 : 1;
+        }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.DrawSphere(mousePosition, 0.2f);
         }
     }
 }

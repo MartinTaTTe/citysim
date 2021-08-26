@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.CitySim.UI;
 
 namespace Unity.CitySim.Map
 {
@@ -56,7 +57,7 @@ namespace Unity.CitySim.Map
         public Gradient soilGradient { get; private set; }
         public Gradient floraGradient { get; private set; }
         public GameObject terrainType;
-        public MapRenderController mapRenderController;
+        public InputController inputController;
         public float mapSize;
         public float chunkSize;
         public int[] triangles { get; private set; }
@@ -236,7 +237,7 @@ namespace Unity.CitySim.Map
 
         public void ChangeHeight(Vector3 position, float change, bool level = false)
         {
-            if (mapRenderController.mousePosition.y != -1)
+            if (inputController.mousePosition.y != -1)
                 ChangeHeight(position.x, position.z, change, level);
         }
 

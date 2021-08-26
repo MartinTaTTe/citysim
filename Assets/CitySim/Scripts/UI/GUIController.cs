@@ -14,7 +14,6 @@ namespace Unity.CitySim.UI
         public Toggle toggleLevelHeight;
         public Toggle toggleHeightEditorTools;
         public MapGenerator mapGenerator;
-        public MapRenderController mapRenderController;
         public GameObject highlightTriangle;
         Mesh highlightTriangleMesh;
 
@@ -66,8 +65,8 @@ namespace Unity.CitySim.UI
             pointerOnGUI = UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
             
             // Update the highlighted area
-            if (highlightTriangle.activeInHierarchy && mapRenderController.mousePosition.y != -1f) {
-                Vector3[] vertices = mapGenerator.TriangleCorners(mapRenderController.mousePosition);
+            if (highlightTriangle.activeInHierarchy && inputController.mousePosition.y != -1f) {
+                Vector3[] vertices = mapGenerator.TriangleCorners(inputController.mousePosition);
                 if (vertices != null) {
                     highlightTriangleMesh.vertices = vertices;
                     highlightTriangleMesh.RecalculateBounds();
