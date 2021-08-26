@@ -5,105 +5,86 @@ namespace Unity.CitySim.Camera
 {
     public class CameraTargetController : MonoBehaviour
     {
-        [Range(1, 100)]
-        public float speed = 5f;
+        [Range(1f, 100f)]
+        public float speed = 50f;
 
-        [Range(1, 100)]
-        public int mouseSpeed = 10;
-
-        [Range(10, 100)]
+        [Range(10f, 100f)]
         public float maxRotationSpeed = 60f;
 
-        [Range(10, 100)]
-        public int rotationAcceleration = 50;
+        [Range(10f, 100f)]
+        public float rotationAcceleration = 50f;
 
-        [Range(1, 100)]
-        public int shiftModifier = 10;
+        [Range(0f, 1000f)]
+        public float spawnHeight = 100f;
 
-        [Range(0, 1000)]
-        public int spawnHeight = 100;
-        
-        float rotationSpeed = 0f;
-        bool onGround = false;
         public Transform mainCameraTransform;
         public MapGenerator mapGenerator;
+
+        float rotationSpeed = 0f;
+        bool onGround = false;
+
+        // Translate in the x, z plane
+        public void TranslateFlat(float perpendicular, float parallel, float modifier)
+        {
+            // Move transform along the object's z-axis
+            transform.Translate(perpendicular * speed * modifier, 0f, parallel * speed * modifier);
+        }
+
+        // Translate along the y axis
+        public void TranslateVertical(float vertical, float modifier)
+        {
+            if (vertical > 0f)
+                onGround = false;
+
+            // Move transform along the object's z-axis
+            transform.Translate(0f, vertical * speed * modifier, 0f);
+        }
+
+        // Rotate the target around its y-axis
+        public void RotateAroundTarget(float frameAcceleration)
+        {
+            // Calculate this frame's rotation
+            float rotation = 2f * frameAcceleration * rotationAcceleration;
+            
+            // Apply the rotation acceleration to the rotation speed
+            rotationSpeed = Mathf.Clamp(rotationSpeed + rotation, -maxRotationSpeed, maxRotationSpeed);
+
+            // Actual rotating is done in Update() (hence the {2f *} 5 lines above)
+        }
+
+        // Rotate the target around the camera's y-axis
+        public void RotateAroundCamera(float movement)
+        {
+            // Calculate the rotation in degrees
+            float rotation = movement / Screen.width * UnityEngine.Camera.main.fieldOfView * 2f;
+
+            // Rotate around the global y-axis passing through the camera
+            transform.RotateAround(mainCameraTransform.position, Vector3.up, rotation);
+        }
 
         void Start()
         {
             // Get height of map
             float middle = mapGenerator.mapSize / 2;
             float mapHeight = mapGenerator.HeightAt(middle, middle) + spawnHeight;
-            
+
             // Move camera to center of terrain
             transform.Translate(middle, mapHeight, middle);
         }
 
         void Update()
         {
-            // Set modifier to 'shiftModifier' if either shift is pressed
-            int modifier = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? shiftModifier : 1;
+            // Calculate this frame's rotation
+            float rotation = Time.deltaTime * rotationAcceleration;
 
-            //// TRANSLATION ////
-            // Get the horizontal and vertical axis.
-            // By default they are mapped to the arrow keys.
-            // The value is in the range -1 to 1
-            float parallel = Input.GetAxis("Vertical") * speed - (Input.GetMouseButton(1) ? Input.GetAxis("Mouse Y") * mouseSpeed : 0);
-            float perpendicular = Input.GetAxis("Horizontal") * speed;
-            float vertical = 0f;
-
-            // Set vertical if buttons 'R' or 'F' are pressed
-            if (Input.GetKey(KeyCode.R)) {
-                onGround = false;
-                vertical += speed;
-            }
-            if (Input.GetKey(KeyCode.F))
-                vertical -= speed;
-
-            // Make movement depend on time passed
-            parallel *= Time.deltaTime;
-            perpendicular *= Time.deltaTime;
-            vertical *= Time.deltaTime;
-
-            // Move translation along the object's z-axis
-            transform.Translate(modifier * perpendicular, modifier * vertical, modifier * parallel);
-
-
-            //// ROTATION AROUND TARGET////
-            float rotation = 0f;
-            float frameAcceleration = rotationAcceleration * Time.deltaTime;
-            
-            // Set rotation if buttons 'Q' or 'E' are pressed
-            if (Input.GetKey(KeyCode.Q))
-                rotation -= frameAcceleration;
-            if (Input.GetKey(KeyCode.E))
-                rotation += frameAcceleration;
-
-            // Apply the rotation acceleration to the rotation speed
-            if (rotation == 0) {
-                if (rotationSpeed < 0)
-                    rotationSpeed = Mathf.Min(rotationSpeed + frameAcceleration, 0);
-                else if (rotationSpeed > 0)
-                    rotationSpeed = Mathf.Max(rotationSpeed - frameAcceleration, 0);
-            } else // if there is rotation input
-                rotationSpeed = Mathf.Clamp(rotationSpeed + rotation, -maxRotationSpeed, maxRotationSpeed);
+            // Reduce the rotation speed
+            if (rotationSpeed < 0)
+                rotationSpeed = Mathf.Min(rotationSpeed + rotation, 0);
+            else if (rotationSpeed > 0)
+                rotationSpeed = Mathf.Max(rotationSpeed - rotation, 0);
 
             // Rotate around the object's y-axis (should always be parallel to global y-axis)
             transform.Rotate(0, rotationSpeed * Time.deltaTime, 0);
-
-
-            //// ROTATION AROUND CAMERA ////
-            // Check if right mouse button is held down
-            if (Input.GetMouseButton(1)) {
-
-                // Get the movement of the mouse along the x-axis
-                float movement = -Input.GetAxis("Mouse X");
-
-                // Calculate the rotation in degrees
-                rotation = movement / Screen.width * UnityEngine.Camera.main.fieldOfView * 2;
-
-                // Rotate around the global y-axis passing through the camera
-                transform.RotateAround(mainCameraTransform.position, Vector3.up, rotation);
-            }
 
             
             //// LAST STEPS ////

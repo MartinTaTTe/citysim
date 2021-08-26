@@ -18,11 +18,15 @@ namespace Unity.CitySim.UI
         [Range(0f, 1f)]
         public float rayTraceInterval = 1f;
 
+        [Range(10f, 500f)]
+        public float mouseSpeedDividend = 100f;
+
         public Vector3 mousePosition { get; private set; }
         public MapGenerator mapGenerator;
         public MapRenderController mapRenderController;
         public GUIController gUIController;
         public CameraController cameraController;
+        public CameraTargetController cameraTargetController;
         
         int currentShiftModifier;
         int currentCtrlModifier;
@@ -58,14 +62,16 @@ namespace Unity.CitySim.UI
             // No intersection between ray and terrain
             return new Vector3(-1f, -1f, -1f);
         }
-        
+
         void Update()
         {
             // Set correct values to the modifiers
             currentShiftModifier = Input.GetKey(KeyCode.LeftShift) ? shiftModifier : 1;
             currentCtrlModifier = Input.GetKey(KeyCode.LeftControl) ? ctrlModifier : 1;
 
+            //////////////////////
             //// MOUSE EVENTS ////
+            //////////////////////
             mousePosition = MousePosition();
 
             // If the pointer is on the terrain
@@ -76,14 +82,41 @@ namespace Unity.CitySim.UI
                 }
             }
 
+            // If RMB is pressed
+            if (Input.GetMouseButton(1)) {
+                cameraTargetController.TranslateFlat(0f, -Input.GetAxis("Mouse Y"), currentShiftModifier / mouseSpeedDividend);
+                cameraTargetController.RotateAroundCamera(-Input.GetAxis("Mouse X"));
+            }
+
             // If the scrollwheel is scrolled
             if (Input.mouseScrollDelta.y != 0f)
                 cameraController.ZoomBy(Input.mouseScrollDelta.y);
 
+            /////////////////////////
             //// KEYBOARD EVENTS ////
+            /////////////////////////
             // If space is pressed
             if (Input.GetKey(KeyCode.Space))
                 mapGenerator.DeleteAllChunks();
+
+            // If Q is pressed
+            if (Input.GetKey(KeyCode.Q))
+                cameraTargetController.RotateAroundTarget(-Time.deltaTime);
+
+            // If E is pressed
+            if (Input.GetKey(KeyCode.E))
+                cameraTargetController.RotateAroundTarget(Time.deltaTime);
+
+            // If R is pressed
+            if (Input.GetKey(KeyCode.R))
+                cameraTargetController.TranslateVertical(1f, currentShiftModifier * Time.deltaTime);
+
+            // If F is pressed
+            if (Input.GetKey(KeyCode.F))
+                cameraTargetController.TranslateVertical(-1f, currentShiftModifier * Time.deltaTime);
+
+            // Move camera target with WASD or arrow keys
+            cameraTargetController.TranslateFlat(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), currentShiftModifier * Time.deltaTime);
         }
 
         void OnValidate()
