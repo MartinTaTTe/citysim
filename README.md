@@ -18,3 +18,7 @@ A couple screenshots during runtime.
 
 Terrain height editing tools.
 <img src="https://github.com/MartinTaTTe/citysim/blob/master/Screenshots/editor.png" alt="Terrain Editing" />
+
+
+## License
+See the [LICENSE](LICENSE) file for license rights and limitations (GNU General Public License).
