@@ -2,10 +2,10 @@
 A game/simulation of building a city from scratch. Work in progress.
 
 ## Version
-Currently using `Unity 2020.3.7f1`.
+Currently using `Unity 2020.3.16f1`.
 
 ## Current state
-Currently the main feature is a terrain generator using [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to generate a somewhat realisitic terrain based on a 2D vector offset. All generator parameters can easily be changed in the Unity editor and the height of the terrain can be edited at runtime. A build from 25th Aug can be found at [bit.ly/tattecitysim](https://bit.ly/tattecitysim).
+Currently the main feature is a terrain generator using [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise) to generate a somewhat realisitic terrain based on a 2D vector offset. All generator parameters can easily be changed in the Unity editor and the height of the terrain can be edited at runtime. A build from 25th of August can be found at [bit.ly/tattecitysim](https://bit.ly/tattecitysim) (mobile not supported).
 
 <img src="https://github.com/MartinTaTTe/citysim/blob/master/Screenshots/mapgenerator.png" alt="Map Generator" />
 <br/><br/>

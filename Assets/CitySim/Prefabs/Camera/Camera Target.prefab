@@ -43,8 +43,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f589f4283a85442939cd750c8f08e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 5
-  mouseSpeed: 10
+  speed: 50
   maxRotationSpeed: 60
-  rotationAcceleration: 1
-  shiftModifier: 10
+  rotationAcceleration: 80
+  spawnHeight: 100
+  mainCameraTransform: {fileID: 0}
+  mapGenerator: {fileID: 0}

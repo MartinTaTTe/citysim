@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.CitySim.UI;
 
 namespace Unity.CitySim.Map
 {
@@ -56,7 +57,7 @@ namespace Unity.CitySim.Map
         public Gradient soilGradient { get; private set; }
         public Gradient floraGradient { get; private set; }
         public GameObject terrainType;
-        public MapRenderController mapRenderController;
+        public InputController inputController;
         public float mapSize;
         public float chunkSize;
         public int[] triangles { get; private set; }
@@ -236,12 +237,12 @@ namespace Unity.CitySim.Map
 
         public void ChangeHeight(Vector3 position, float change, bool level = false)
         {
-            if (mapRenderController.mousePosition.y != -1)
+            if (inputController.mousePosition.y != -1)
                 ChangeHeight(position.x, position.z, change, level);
         }
 
         // Delete all chunks in order to regenerate them
-        void DeleteAllChunks()
+        public void DeleteAllChunks()
         {
             for (int x = 0; x < maxGridSize; x++) {
                 for (int y = 0; y < maxGridSize; y++) {
@@ -352,13 +353,6 @@ namespace Unity.CitySim.Map
                 System.Array.Resize(ref flora, 7);
 
             SetSizes();
-        }
-
-        void Update()
-        {
-            // Delete all chunks if space is pressed
-            if (Input.GetKey(KeyCode.Space))
-                DeleteAllChunks();
         }
     }
 }

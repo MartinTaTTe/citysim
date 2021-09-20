@@ -8,6 +8,9 @@ namespace Unity.CitySim.Camera
         [Range(1f, 100f)]
         public float startHorizontalOffset = 10f;
 
+        [Range(1000f, 20000f)]
+        public float maxVerticalOffset = 5000f;
+
         [Range(1, 10)]
         public int verticalExponent = 3;
 
@@ -25,30 +28,32 @@ namespace Unity.CitySim.Camera
 
         float horizontalOffset;
         float targetHorizontalOffset;
+        float maxHorizontalOffset;
         float verticalOffset;
         public Transform cameraTargetTransform;
         public MapGenerator mapGenerator;
 
+        // Apply zoom to camera target offset, steps should be Input.mouseScrollDelta.y
+        public void ZoomBy(float steps)
+        {
+            // Convert steps to zoom amount
+            float zoom = -steps * zoomSensitivity;
+            targetHorizontalOffset = Mathf.Clamp(targetHorizontalOffset + zoom, 0, maxHorizontalOffset);
+        }
+
         void Awake()
         {
             horizontalOffset = startHorizontalOffset;
+            float f = maxVerticalOffset * Mathf.Pow(elevationDistance, verticalExponent);
+            maxHorizontalOffset = Mathf.Pow(f, 1f / (verticalExponent + 1));
             targetHorizontalOffset = horizontalOffset;
             verticalOffset = horizontalOffset * Mathf.Pow(horizontalOffset / elevationDistance, verticalExponent);
+            GetComponent<UnityEngine.Camera>().farClipPlane = 1.414f * maxVerticalOffset;
         }
 
         void Update()
         {
             //// ZOOM ////
-            // Get the zoom amount
-            float zoom = -Input.mouseScrollDelta.y * zoomSensitivity;
-
-            // If zooming in
-            if (zoom < 0)
-                targetHorizontalOffset = Mathf.Max(targetHorizontalOffset + zoom, 0);
-            // If zooming out
-            else if (zoom > 0)
-                targetHorizontalOffset += zoom;
-
             // Smoothen camera movement during zooming
             if (Mathf.Abs(targetHorizontalOffset - horizontalOffset) < minZoomStep)
                 horizontalOffset = targetHorizontalOffset;

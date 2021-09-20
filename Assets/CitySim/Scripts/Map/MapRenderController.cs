@@ -7,38 +7,8 @@ namespace Unity.CitySim.Map
         [Range(10, 2000)]
         public int minRenderRange = 1000;
 
-        [Range(10, 2000)]
-        public int rayTraceDistance = 1000;
-
-        [Range(0f, 1f)]
-        public float rayTraceInterval = 1f;
-
         public Transform mainCameraTransform;
         public MapGenerator mapGenerator;
-        public Vector3 mousePosition { get; private set; }
-
-        // Get the position of the mouse on the terrain
-        Vector3 MousePosition()
-        {
-            // Ray from camera to mouse position
-            Ray ray = UnityEngine.Camera.main.ScreenPointToRay(Input.mousePosition);
-
-            float d = 0f;
-            while (d < rayTraceDistance) {
-                Vector3 point = ray.GetPoint(d);
-
-                // Check if point is below terrain surface
-                if (point.y - mapGenerator.HeightAt(point) <= 0f) {
-                    point.y = mapGenerator.HeightAt(point);
-                    return point;
-                }
-
-                d += rayTraceInterval;
-            }
-
-            // No intersection between ray and terrain
-            return new Vector3(-1f, -1f, -1f);
-        }
 
         void ToggleTerrainActivity()
         {
@@ -81,13 +51,6 @@ namespace Unity.CitySim.Map
         void Update()
         {
             ToggleTerrainActivity();
-
-            mousePosition = MousePosition();
-        }
-
-        void OnDrawGizmos()
-        {
-            Gizmos.DrawSphere(mousePosition, 0.2f);
         }
     }
 }
